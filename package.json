@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node lib/index.js",
     "dev": "ts-node-dev src/index.ts",
+    "test": "jest",
     "lint": "ts-standard",
     "lint-fix": "ts-standard --fix",
-    "tsc": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,9 @@
   },
   "homepage": "https://github.com/crisconru/splitea#readme",
   "devDependencies": {
+    "@types/jest": "^28.1.2",
+    "jest": "^28.1.1",
+    "ts-jest": "^28.0.5",
     "ts-node-dev": "1.1.8",
     "ts-standard": "11.0.0",
     "typescript": "4.6.4"
@@ -40,6 +43,6 @@
     ]
   },
   "dependencies": {
-    "jimp": "0.16.1"
+    "jimp": "^0.16.0"
   }
 }

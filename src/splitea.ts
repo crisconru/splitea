@@ -1,10 +1,6 @@
 import path from 'path'
 import Jimp from 'jimp'
-
-interface Size {
-  width: number
-  height: number
-}
+import { Size } from './types'
 
 class SpliteaError extends Error {
   constructor (msg: string) {
@@ -25,10 +21,15 @@ export const getSize = async (IMG: string): Promise<Size> => {
   }
 }
 
-const getSplitImage = async (img: Jimp, x: number, y: number, w: number, h: number): Promise<Jimp> => {
+const writeImage = (image: Jimp, name: string, index: number, extension: string): string => {
+  const filename = `${name}_${index}_${new Date().getTime()}${extension}`
+  image.write(filename)
+  return filename
+}
+
+const getSplitImage = (img: Jimp, x: number, y: number, w: number, h: number): Jimp => {
   try {
-    const newImg = await img.clone().autocrop().crop(x, y, w, h)
-    return newImg
+    return img.clone().autocrop().crop(x, y, w, h)
   } catch (err) {
     if (err instanceof SpliteaError) { throw err }
     console.log(err)
@@ -40,7 +41,7 @@ export const getSlicesVertical = async (IMG: string, slicesNumber: number): Prom
   try {
     const img = await Jimp.read(IMG)
     const { width, height } = img.bitmap
-    const step = Math.floor(height / slicesNumber
+    const step = Math.floor(height / slicesNumber)
     let slices: Jimp[] = []
     const x = 0
     const w = width
@@ -48,7 +49,7 @@ export const getSlicesVertical = async (IMG: string, slicesNumber: number): Prom
     for (let i = 0; i < slicesNumber; i++) {
       const y = i * step
       const newHeight = ((y + h) <= height) ? h : height - y
-      const slice = await getSplitImage(img, x, y, w, newHeight)
+      const slice = getSplitImage(img, x, y, w, newHeight)
       if (slice.bitmap.height < height) {
         slices.push(slice)
       }
@@ -78,7 +79,7 @@ export const getSlicesHorizontal = async (IMG: string, slicesNumber: number): Pr
         x = ${x} px - w = ${newWidth} px
         y = ${y} px - h = ${h} px
       `)
-      const slice = await getSplitImage(img, x, y, newWidth, h)
+      const slice = getSplitImage(img, x, y, newWidth, h)
       if (slice.bitmap.width < width) {
         slices.push(slice)
       }
@@ -88,7 +89,6 @@ export const getSlicesHorizontal = async (IMG: string, slicesNumber: number): Pr
     if (error instanceof SpliteaError) { throw error }
     console.error(error)
     throw new SpliteaError('Problem with getting horizontal slices')
-    // return []
   }
 }
 
@@ -97,12 +97,7 @@ export const splitImageVertical = async (IMG: string, slicesNumber: number): Pro
     const slices = await getSlicesVertical(IMG, slicesNumber)
     if (slices.length === 0) { return [] }
     const { name, ext } = path.parse(IMG)
-    const fileNames = slices.map((slice, index) => {
-      const filename = `${name}_${index}_${new Date().getTime()}${ext}`
-      slice.write(filename)
-      return filename
-    })
-    return fileNames
+    return slices.map((slice, index) => writeImage(slice, name, index, ext))
   } catch (error) {
     if (error instanceof SpliteaError) { throw error }
     console.log(error)
@@ -115,12 +110,7 @@ export const splitImageHorizontal = async (IMG: string, slicesNumber: number): P
     const slices = await getSlicesHorizontal(IMG, slicesNumber)
     if (slices.length === 0) { return [] }
     const { name, ext } = path.parse(IMG)
-    const fileNames = slices.map((slice, index) => {
-      const filename = `${name}_${index}_${new Date().getTime()}${ext}`
-      slice.write(filename)
-      return filename
-    })
-    return fileNames
+    return slices.map((slice, index) => writeImage(slice, name, index, ext))
   } catch (error) {
     if (error instanceof SpliteaError) { throw error }
     console.log(error)

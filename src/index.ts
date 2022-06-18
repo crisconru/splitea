@@ -25,7 +25,7 @@ const IMG = './src/Ericsatie.jpg'
 // (async () => {
 //   try {
 //     const imgs = await Splitea.splitImageVertical(IMG, 2)
-    
+
 //   } catch (error) {
 //     console.error(error)
 //   }
@@ -33,7 +33,7 @@ const IMG = './src/Ericsatie.jpg'
 Splitea.splitImageVertical(IMG, 2)
   .then(imgs => {
     console.log('Images Vertical')
-    imgs.map(img => console.log(img))
+    imgs.forEach(img => console.log(img))
   })
   .catch(err => console.log(err))
 
