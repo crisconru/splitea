@@ -1,6 +1,13 @@
-import * as Splitea from './splitea'
+import path from 'path'
+import { Mode } from './enums'
+import { Splitea } from './splitea'
+import { Options } from './types'
 
-const IMG = './src/Ericsatie.jpg'
+const IMG = path.join(__dirname, '..', 'examples', 'mapabosque.png')
+console.log(IMG)
+const OPTIONS: Options = {
+  mode: Mode.Grid
+}
 
 // Splitea.getSize(IMG)
 //   .then(size => {
@@ -8,40 +15,6 @@ const IMG = './src/Ericsatie.jpg'
 //   })
 //   .catch(err => console.log(err))
 
-// console.log('--------------------------------------------------------------')
-
-// Splitea.getSlicesVertical(IMG, 2)
-//   .then(slices => {
-//     if (slices.length > 0) {
-//       slices.map((slice, index) => {
-//         console.log(`${index} - width: ${slice.bitmap.width} px | height: ${slice.bitmap.height} px`)
-//         return 1
-//       })
-//     }
-//   })
-//   .catch(error => console.log(error))
-
-// console.log('--------------------------------------------------------------')
-// (async () => {
-//   try {
-//     const imgs = await Splitea.splitImageVertical(IMG, 2)
-
-//   } catch (error) {
-//     console.error(error)
-//   }
-// })()
-Splitea.splitImageVertical(IMG, 2)
-  .then(imgs => {
-    console.log('Images Vertical')
-    imgs.forEach(img => console.log(img))
-  })
-  .catch(err => console.log(err))
-
-console.log('--------------------------------------------------------------')
-
-Splitea.splitImageHorizontal(IMG, 2)
-  .then(imgs => {
-    console.log('Images Horizontal')
-    imgs.forEach(img => console.log(img))
-  })
-  .catch(err => console.log(err))
+Splitea(IMG, OPTIONS)
+  .then(res => console.log(res))
+  .catch(error => console.error(error))
