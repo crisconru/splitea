@@ -22,13 +22,13 @@ const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any, height
   switch (mode) {
     // Mode Grid -> rows + columns || width + height
     case Mode.Grid:
+      // Are Natural Numbers -> Columns + Rows || Width + Height
       if (!(validPairNaturalNumbers(rows, columns) || validPairNaturalNumbers(width, height))) {
-        const msg = 'you need to provide two natural numbers, columns + rows or height (px) + width (px)'
-        throw new SpliteaError(msg)
+        throw new SpliteaError('you need to provide two natural numbers, columns + rows or height (px) + width (px)')
       }
+      // Are Submultiples Numbers of Size -> Columns + Rows || Width + Height
       if (!(validPairSubmultiples(size.height, rows, size.width, columns) || validPairSubmultiples(size.width, width, size.height, height))) {
-        const msg = `you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`
-        throw new SpliteaError(msg)
+        throw new SpliteaError(`you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`)
       }
       break
     // Mode horizontal -> columns || width
