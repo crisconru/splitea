@@ -2,22 +2,22 @@ import { Mode } from './enums'
 import { SpliteaError } from './errors'
 import { Size } from './types'
 
-const parseMode = (mode: any): void => {
+export const parseMode = (mode: any): any => {
   if (!Object.values(Mode).includes(mode)) {
     throw new SpliteaError(`Invalid mode, only ${Mode.Grid}, ${Mode.Horizontal}, ${Mode.Vertical} is permitted`)
   }
   return mode
 }
 
-const isNatural = (number: any): boolean => typeof number === 'number' && String(number).split('.').length === 1 && number >= 0
+export const isNatural = (number: any): boolean => typeof number === 'number' && String(number).split('.').length === 1 && number > 0
 
-const validPairNaturalNumbers = (first: any, second: any): boolean => isNatural(first) && isNatural(second)
+export const validPairNaturalNumbers = (first: any, second: any): boolean => isNatural(first) && isNatural(second)
 
-const isSubmultiple = (numerator: number, denominator: number): boolean => isNatural(numerator / denominator)
+export const isSubmultiple = (numerator: any, denominator: any): boolean => isNatural(numerator) && isNatural(denominator) && isNatural(numerator / denominator)
 
-const validPairSubmultiples = (numerator1: number, denominator1: number, numerator2: number, denominator2: number): boolean => isSubmultiple(numerator1, denominator1) && isSubmultiple(numerator2, denominator2)
+export const validPairSubmultiples = (numerator1: any, denominator1: any, numerator2: any, denominator2: any): boolean => isSubmultiple(numerator1, denominator1) && isSubmultiple(numerator2, denominator2)
 
-const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any, height: any, size: Size): void => {
+export const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any, height: any, size: Size): boolean => {
   parseMode(mode)
   switch (mode) {
     // Mode Grid -> rows + columns || width + height
@@ -31,21 +31,32 @@ const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any, height
         throw new SpliteaError(`you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`)
       }
       break
-    // Mode horizontal -> columns || width
+    // Mode horizontal -> Columns || Width
     case Mode.Horizontal:
+      // Are Natural Numbers -> Columns || Width
       if (!(isNatural(columns) || isNatural(width))) {
         const msg = 'you need to provide one natural number, columns or width (px)'
         throw new SpliteaError(msg)
       }
+      // Are Submultiples Numbers of Size -> Columns || Width
+      if (!(isSubmultiple(size.width, columns) || isSubmultiple(size.width, width))) {
+        throw new SpliteaError(`you need to provide one natural submultiple of ${size.width}, columns or width (px)`)
+      }
       break
-    // Mode Vertical -> rows || height
+    // Mode Vertical -> Rows || Height
     case Mode.Vertical:
+      // Are Natural Numbers -> Rows || Height
       if (!(isNatural(rows) || isNatural(height))) {
-        const msg = 'you need to provide one natural number, columns or height (px)'
+        const msg = 'you need to provide one natural number, rows or height (px)'
         throw new SpliteaError(msg)
+      }
+      // Are Submultiples Numbers of Size -> Rows || Height
+      if (!(isSubmultiple(size.height, rows) || isSubmultiple(size.height, height))) {
+        throw new SpliteaError(`you need to provide one natural submultiple of ${size.height}, rows or height (px)`)
       }
       break
   }
+  return true
 }
 
 export const parseOptions = (options: any, size: Size): boolean => {

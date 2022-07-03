@@ -20,8 +20,7 @@ export const readImage = async (image: string): Promise<Jimp> => {
   try {
     return await Jimp.read(image)
   } catch (error) {
-    console.error('Problem reading image')
-    throw new SpliteaError(String(error))
+    throw throwError(error)
   }
 }
 
