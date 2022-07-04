@@ -27,6 +27,7 @@ export interface Options {
   height?: number
   unique?: boolean
   output?: Output
+  save?: boolean
   path?: string
   name?: string
   extension?: string
