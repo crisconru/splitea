@@ -1,5 +1,7 @@
 # splitea
 
+[![Node.js CI](https://github.com/crisconru/splitea/actions/workflows/node.js.yml/badge.svg)](https://github.com/crisconru/splitea/actions/workflows/node.js.yml)
+
 Is a tool to split images. The code is based on [image-splitter](https://github.com/achimoraites/image-splitter) code.
 
 The idea is that you tell to the lib what image and:
