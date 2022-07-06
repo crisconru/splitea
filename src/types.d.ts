@@ -1,39 +1,48 @@
 
 import Jimp from 'jimp/*'
-import { Output } from './enums'
+import { Data, Extension } from './enums'
 
 export type Image = string | Buffer | Jimp
 
 export type Images = string[]
-/**
- * 1. Modo de corte -> Cuadricula, vertical, horizontal
- * 2. Datos para el corte
- * 2.1 Grid -> n slices | width + height
- * 2.2 Vertical -> n slices | height
- * 2.3 Horizontal -> n slices | weidth
- * 3. No slices repetidas
- * 4. Que se devuelve -> Path | Buffer
- * 4.1 Path -> Se guardan las imagenes y
- *  se devuelve un array string con el path de cada slices
- * 4.2 Buffer -> No se guardan las imágenes y
- *  se devuelve un array Buffer con la data de cada slice
- **/
 
-export interface Options {
-  mode: Mode
+export interface Size {
+  width: number
+  height: number
+}
+
+export interface Tile {
   rows?: number
   columns?: number
   width?: number
   height?: number
   unique?: boolean
-  output?: Output
-  save?: boolean
-  path?: string
-  name?: string
-  extension?: string
 }
 
-export interface Size {
-  width: number
-  height: number
+export interface Output {
+  data: Data
+  path?: string
+  name?: string
+  extension?: Extension
+}
+
+/**
+ * 1. Slice Mode -> mode => grid | vertical | horizontal
+ * 2. Data for the slices -> tiles
+ * 2.1 Grid tiles -> rows + columns | width + height
+ * 2.2 Vertical tiles -> rows | height
+ * 2.3 Horizontal tiles -> columns | width
+ * 2.4 Non-repeated tiles -> unique => true | false
+ * 3. Output info -> output
+ * 3.1 Data to return -> data => buffer | path
+ *     If data is path or you want to store the slices it needs to provide more properties
+ * 3.2 Local path to store slices -> path
+ * 3.3 Name preffix to slices -> name
+ * 3.4 Extension to slices -> extension => jpg | png | bmp | gif | tiff
+ **/
+
+export interface Options {
+  mode: Mode
+  tiles?: Tile
+  output?: Output
 }

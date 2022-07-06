@@ -4,25 +4,26 @@
 
 Is a tool to split images. The code is based on [image-splitter](https://github.com/achimoraites/image-splitter) code.
 
-The idea is that you tell to the lib what image and:
+The idea is that you tell to the lib what source image to use and:
 
 - N images per row and M images per colum -> You get image splitted into N x M images.
 - N px per row and M px per colum -> You get image splitted into images with N x M px.
 
-Dos parámetros:
+Then you tell if you want to store them and how to return data.
 
-1. `image` puede ser String (fichero local o url) o Buffer o Jimp Object
-2. `options` es un JSON con los campos
-   1. `mode` -> Split mode `grid` (by default) | `vertical` | `horizontal`
-   2. `slices` -> Number of slices
-   3. `width` -> Width in pixels per slice
-   4. `height` -> Height in pixels per slice
-   5. `name` -> name to the slices
-   6. `extension` -> extension to the slices
-   7. `unique` -> only non-repeated slices with `true`, `false` by default  
+Inputs are two arguments:
 
-Si `image` no es un fichero local entonces en `options` tiene que venir si o si lo siguiente:
-
-- `name`
-- ¿`extension`?
-
+1. `image` -> Source image => `String` (local file or url) | `Buffer` | `Jimp Object`
+2. `options` -> JSON with next properties:
+   1. `mode` -> Split mode => `grid` (by default) | `vertical` | `horizontal`
+   2. `tiles` -> JSON with properties related to the slices or commonly known as tiles
+      1. `rows` -> Number of rows
+      2. `columns` -> Number of columns
+      3. `width` -> Width in pixels per tile
+      4. `height` -> Height in pixels per tile
+      5. `unique` -> If you need all tiles or non-repeated => `false` (all tiles by default) | `true` (non-repeated tiles)
+   3. `output` -> JSON with properties related to the output / return data and how store it
+      1. `data` -> Type of data to be returned => `buffer` (default) | `path` (local path)
+      2. `path` -> Local path to save the tiles
+      3. `name` -> Preffix name to save the tiles
+      4. `extension` -> Supported extension to save tiles => `jpg` | `png` | `bmp` | `gif` | `tiff`

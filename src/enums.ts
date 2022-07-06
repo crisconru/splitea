@@ -5,7 +5,16 @@ export enum Mode {
   Horizontal = 'horizontal'
 }
 
-export enum Output {
-  Path = 'path',
-  Buffer = 'buffer'
+export enum Data {
+  Buffer = 'buffer',
+  Path = 'path'
+}
+
+export enum Extension {
+  JPG = 'jpg',
+  JPEG = 'jpeg',
+  PNG = 'png',
+  BMP = 'bmp',
+  GIF = 'gif',
+  TIFF = 'tiff'
 }
