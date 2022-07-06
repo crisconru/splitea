@@ -1,7 +1,7 @@
 import path from 'path'
 import { Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
-import { Size } from '../src/types'
+import { Size, Tile } from '../src/types'
 import { isNatural, isSubmultiple, parseMode, parseModeSlices, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
 const imgFolder = path.join(__dirname, '..', 'examples')
@@ -114,90 +114,87 @@ describe('Test Utils Module', () => {
       const mode = Mode.Grid
       const size: Size = { width: imgTest.width, height: imgTest.height }
       const errorSubmultiple = new SpliteaError(`you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`)
+      const tiles: Tile = { rows: undefined, columns: undefined, width: undefined, height: undefined, unique: false }
       // OK Rows & Columns
-      let rows: any = 2
-      let columns: any = 2
-      let width: any
-      let height: any
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.rows = 2
+      tiles.columns = 2
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // OK Width & Height
-      rows = undefined
-      columns = undefined
-      width = 2
-      height = 2
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.rows = undefined
+      tiles.columns = undefined
+      tiles.width = 2
+      tiles.height = 2
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // Fail Rows Ok Columns
-      rows = 3
-      columns = 2
-      width = undefined
-      height = undefined
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = 3
+      tiles.columns = 2
+      tiles.width = undefined
+      tiles.height = undefined
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
       // Ok Rows Fail Columns
-      rows = 2
-      columns = 3
-      width = undefined
-      height = undefined
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = 2
+      tiles.columns = 3
+      tiles.width = undefined
+      tiles.height = undefined
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Width & Ok Height
-      rows = undefined
-      columns = undefined
-      width = 3
-      height = 2
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = undefined
+      tiles.columns = undefined
+      tiles.width = 3
+      tiles.height = 2
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
       // Ok Width & Fail Height
-      rows = undefined
-      columns = undefined
-      width = 2
-      height = 3
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = undefined
+      tiles.columns = undefined
+      tiles.width = 2
+      tiles.height = 3
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
     })
 
     test('Horizontal', () => {
       const mode = Mode.Horizontal
       const size: Size = { width: imgTest.width, height: imgTest.height }
       const errorSubmultiple = new SpliteaError(`you need to provide one natural submultiple of ${size.width}, columns or width (px)`)
-      const rows: any = undefined
-      const height: any = undefined
+      const tiles: Tile = { rows: undefined, columns: undefined, width: undefined, height: undefined, unique: false }
       // OK Columns
-      let columns: any = 2
-      let width: any
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.columns = 2
+      tiles.width = undefined
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // OK Width
-      columns = undefined
-      width = 2
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.columns = undefined
+      tiles.width = 2
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // Fail Columns
-      columns = 3
-      width = undefined
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.columns = 3
+      tiles.width = undefined
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Width
-      columns = undefined
-      width = 3
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.columns = undefined
+      tiles.width = 3
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
     })
 
     test('Vertical', () => {
       const mode = Mode.Vertical
       const size: Size = { width: imgTest.width, height: imgTest.height }
       const errorSubmultiple = new SpliteaError(`you need to provide one natural submultiple of ${size.height}, rows or height (px)`)
-      const columns: any = undefined
-      const width: any = undefined
+      const tiles: Tile = { rows: undefined, columns: undefined, width: undefined, height: undefined, unique: false }
       // OK Rows
-      let rows: any = 2
-      let height: any
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.rows = 2
+      tiles.height = undefined
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // OK Height
-      rows = undefined
-      height = 2
-      expect(parseModeSlices(mode, rows, columns, width, height, size)).toBeTruthy()
+      tiles.rows = undefined
+      tiles.height = 2
+      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
       // Fail Rows
-      rows = 3
-      height = undefined
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = 3
+      tiles.height = undefined
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Height
-      rows = undefined
-      height = 3
-      expect(() => parseModeSlices(mode, rows, columns, width, height, size)).toThrow(errorSubmultiple)
+      tiles.rows = undefined
+      tiles.height = 3
+      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
     })
   })
 })

@@ -17,8 +17,9 @@ export const isSubmultiple = (numerator: any, denominator: any): boolean => isNa
 
 export const validPairSubmultiples = (numerator1: any, denominator1: any, numerator2: any, denominator2: any): boolean => isSubmultiple(numerator1, denominator1) && isSubmultiple(numerator2, denominator2)
 
-export const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any, height: any, size: Size): boolean => {
+export const parseModeSlices = (mode: Mode, tiles: any, size: Size): boolean => {
   parseMode(mode)
+  const { rows, columns, width, height } = tiles
   switch (mode) {
     // Mode Grid -> rows + columns || width + height
     case Mode.Grid:
@@ -61,7 +62,7 @@ export const parseModeSlices = (mode: Mode, rows: any, columns: any, width: any,
 
 export const parseOptions = (options: any, size: Size): boolean => {
   // Mode + Slices (Rows + Columns || Width + Height)
-  parseModeSlices(options.mode, options?.row, options?.columns, options?.width, options?.height, size)
+  parseModeSlices(options.mode, options?.tiles, size)
   // Name
   // Extension
   // Unique
