@@ -2,7 +2,7 @@ import path from 'path'
 import { Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
 import { Size, Tile } from '../src/types'
-import { isNatural, isSubmultiple, parseMode, parseModeSlices, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { isNatural, isSubmultiple, parseMode, parseModeTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
 const imgFolder = path.join(__dirname, '..', 'examples')
 
@@ -109,7 +109,28 @@ describe('Test Utils Module', () => {
     })
   })
 
-  describe('parseModeSlices', () => {
+  describe('parseUnique', () => {
+    test('Valid Unique', () => {
+      const tiles: any = {}
+      expect(parseUnique(tiles)).toBeTruthy()
+      tiles.unique = true
+      expect(parseUnique(tiles)).toBeTruthy()
+      tiles.unique = false
+      expect(parseUnique(tiles)).toBeTruthy()
+    })
+
+    test('Invalid Unique', () => {
+      const tiles: any = { unique: 0 }
+      const error = new SpliteaError('unique property should be boolean, only admits true or false value')
+      expect(() => parseUnique(tiles)).toThrow(error)
+      tiles.unique = 1
+      expect(() => parseUnique(tiles)).toThrow(error)
+      tiles.unique = 'true'
+      expect(() => parseUnique(tiles)).toThrow(error)
+    })
+  })
+
+  describe('parseModeTiles', () => {
     test('Grid', () => {
       const mode = Mode.Grid
       const size: Size = { width: imgTest.width, height: imgTest.height }
@@ -118,37 +139,37 @@ describe('Test Utils Module', () => {
       // OK Rows & Columns
       tiles.rows = 2
       tiles.columns = 2
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // OK Width & Height
       tiles.rows = undefined
       tiles.columns = undefined
       tiles.width = 2
       tiles.height = 2
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // Fail Rows Ok Columns
       tiles.rows = 3
       tiles.columns = 2
       tiles.width = undefined
       tiles.height = undefined
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
       // Ok Rows Fail Columns
       tiles.rows = 2
       tiles.columns = 3
       tiles.width = undefined
       tiles.height = undefined
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Width & Ok Height
       tiles.rows = undefined
       tiles.columns = undefined
       tiles.width = 3
       tiles.height = 2
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
       // Ok Width & Fail Height
       tiles.rows = undefined
       tiles.columns = undefined
       tiles.width = 2
       tiles.height = 3
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
     })
 
     test('Horizontal', () => {
@@ -159,19 +180,19 @@ describe('Test Utils Module', () => {
       // OK Columns
       tiles.columns = 2
       tiles.width = undefined
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // OK Width
       tiles.columns = undefined
       tiles.width = 2
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // Fail Columns
       tiles.columns = 3
       tiles.width = undefined
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Width
       tiles.columns = undefined
       tiles.width = 3
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
     })
 
     test('Vertical', () => {
@@ -182,19 +203,19 @@ describe('Test Utils Module', () => {
       // OK Rows
       tiles.rows = 2
       tiles.height = undefined
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // OK Height
       tiles.rows = undefined
       tiles.height = 2
-      expect(parseModeSlices(mode, tiles, size)).toBeTruthy()
+      expect(parseModeTiles(mode, tiles, size)).toBeTruthy()
       // Fail Rows
       tiles.rows = 3
       tiles.height = undefined
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
       // Fail Height
       tiles.rows = undefined
       tiles.height = 3
-      expect(() => parseModeSlices(mode, tiles, size)).toThrow(errorSubmultiple)
+      expect(() => parseModeTiles(mode, tiles, size)).toThrow(errorSubmultiple)
     })
   })
 })

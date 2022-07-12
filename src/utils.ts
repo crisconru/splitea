@@ -17,52 +17,75 @@ export const isSubmultiple = (numerator: any, denominator: any): boolean => isNa
 
 export const validPairSubmultiples = (numerator1: any, denominator1: any, numerator2: any, denominator2: any): boolean => isSubmultiple(numerator1, denominator1) && isSubmultiple(numerator2, denominator2)
 
-export const parseModeSlices = (mode: Mode, tiles: any, size: Size): boolean => {
-  parseMode(mode)
-  const { rows, columns, width, height } = tiles
-  switch (mode) {
-    // Mode Grid -> rows + columns || width + height
-    case Mode.Grid:
-      // Are Natural Numbers -> Columns + Rows || Width + Height
-      if (!(validPairNaturalNumbers(rows, columns) || validPairNaturalNumbers(width, height))) {
-        throw new SpliteaError('you need to provide two natural numbers, columns + rows or height (px) + width (px)')
-      }
-      // Are Submultiples Numbers of Size -> Columns + Rows || Width + Height
-      if (!(validPairSubmultiples(size.height, rows, size.width, columns) || validPairSubmultiples(size.width, width, size.height, height))) {
-        throw new SpliteaError(`you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`)
-      }
-      break
-    // Mode horizontal -> Columns || Width
-    case Mode.Horizontal:
-      // Are Natural Numbers -> Columns || Width
-      if (!(isNatural(columns) || isNatural(width))) {
-        const msg = 'you need to provide one natural number, columns or width (px)'
-        throw new SpliteaError(msg)
-      }
-      // Are Submultiples Numbers of Size -> Columns || Width
-      if (!(isSubmultiple(size.width, columns) || isSubmultiple(size.width, width))) {
-        throw new SpliteaError(`you need to provide one natural submultiple of ${size.width}, columns or width (px)`)
-      }
-      break
-    // Mode Vertical -> Rows || Height
-    case Mode.Vertical:
-      // Are Natural Numbers -> Rows || Height
-      if (!(isNatural(rows) || isNatural(height))) {
-        const msg = 'you need to provide one natural number, rows or height (px)'
-        throw new SpliteaError(msg)
-      }
-      // Are Submultiples Numbers of Size -> Rows || Height
-      if (!(isSubmultiple(size.height, rows) || isSubmultiple(size.height, height))) {
-        throw new SpliteaError(`you need to provide one natural submultiple of ${size.height}, rows or height (px)`)
-      }
-      break
+export const parseUnique = (tiles: any): boolean => {
+  if (tiles.unique !== undefined && typeof tiles.unique !== 'boolean') {
+    throw new SpliteaError('unique property should be boolean, only admits true or false value')
   }
   return true
 }
 
+const checkModeGrid = (rows: any, columns: any, width: any, height: any, size: Size): void => {
+  // Are Natural Numbers -> Columns + Rows || Width + Height
+  if (!(validPairNaturalNumbers(rows, columns) || validPairNaturalNumbers(width, height))) {
+    throw new SpliteaError('you need to provide two natural numbers, columns + rows or height (px) + width (px)')
+  }
+  // Are Submultiples Numbers of Size -> Columns + Rows || Width + Height
+  if (!(validPairSubmultiples(size.height, rows, size.width, columns) || validPairSubmultiples(size.width, width, size.height, height))) {
+    throw new SpliteaError(`you need to provide two natural submultiples of ${size.width} and ${size.height}, columns + rows or width (px) + height (px)`)
+  }
+}
+
+const checkModeHorizontal = (columns: any, width: any, size: Size): void => {
+  // Are Natural Numbers -> Columns || Width
+  if (!(isNatural(columns) || isNatural(width))) {
+    const msg = 'you need to provide one natural number, columns or width (px)'
+    throw new SpliteaError(msg)
+  }
+  // Are Submultiples Numbers of Size -> Columns || Width
+  if (!(isSubmultiple(size.width, columns) || isSubmultiple(size.width, width))) {
+    throw new SpliteaError(`you need to provide one natural submultiple of ${size.width}, columns or width (px)`)
+  }
+}
+
+const checkModeVertical = (rows: any, height: any, size: Size): void => {
+  // Are Natural Numbers -> Rows || Height
+  if (!(isNatural(rows) || isNatural(height))) {
+    const msg = 'you need to provide one natural number, rows or height (px)'
+    throw new SpliteaError(msg)
+  }
+  // Are Submultiples Numbers of Size -> Rows || Height
+  if (!(isSubmultiple(size.height, rows) || isSubmultiple(size.height, height))) {
+    throw new SpliteaError(`you need to provide one natural submultiple of ${size.height}, rows or height (px)`)
+  }
+}
+
+export const parseModeTiles = (mode: Mode, tiles: any, size: Size): boolean => {
+  // Parse Mode
+  parseMode(mode)
+  // Parse Tiles -> rows, columns,  width,  eight
+  const { rows, columns, width, height } = tiles
+  switch (mode) {
+    // Mode Grid -> rows + columns || width + height
+    case Mode.Grid:
+      checkModeGrid(rows, columns, width, height, size)
+      break
+    // Mode horizontal -> Columns || Width
+    case Mode.Horizontal:
+      checkModeHorizontal(columns, width, size)
+      break
+    // Mode Vertical -> Rows || Height
+    case Mode.Vertical:
+      checkModeVertical(rows, height, size)
+      break
+  }
+  // Parse Tiles.unique
+  parseUnique(tiles)
+  return true
+}
+
 export const parseOptions = (options: any, size: Size): boolean => {
-  // Mode + Slices (Rows + Columns || Width + Height)
-  parseModeSlices(options.mode, options?.tiles, size)
+  // Mode + Tiles
+  parseModeTiles(options.mode, options?.tiles, size)
   // Name
   // Extension
   // Unique
