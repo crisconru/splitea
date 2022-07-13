@@ -1,8 +1,7 @@
-// import path from 'path'
 import Jimp from 'jimp'
 import { SpliteaError, throwError } from './errors'
-import { Size, Options, Images } from './types'
-import { parseOptions } from './utils'
+import { Size, Images, Tiles, Output } from './types'
+import { parseOutput, parseTiles } from './utils'
 
 export const getSize = async (IMG: string): Promise<Size> => {
   try {
@@ -24,13 +23,15 @@ export const readImage = async (image: string): Promise<Jimp> => {
   }
 }
 
-export const Splitea = async (image: string, options?: Options): Promise<Images | undefined | never> => {
+export const Splitea = async (image: string, tiles?: Tiles, output?: Output): Promise<Images | undefined | never> => {
   try {
     // Leer la imagen
     const img = await readImage(image)
     const size: Size = { width: img.bitmap.width, height: img.bitmap.height }
-    // Comprobar que las opciones son correctas
-    if (!parseOptions(options, size)) { throw new SpliteaError('Bad options') }
+    // Comprobar que las tiles son correctas
+    if (!parseTiles(tiles, size)) { throw new SpliteaError('Bad tiles options') }
+    // Comprobar que el output es correcto
+    if (!parseOutput(output)) { throw new SpliteaError('Bad output options') }
     // Obtener las imagenes cortadas
     // Quitar las iguales
     // Guardar las fotos

@@ -1,6 +1,6 @@
 
 import Jimp from 'jimp/*'
-import { Data, Extension } from './enums'
+import { Data, Extension, Mode } from './enums'
 
 export type Image = string | Buffer | Jimp
 
@@ -11,7 +11,8 @@ export interface Size {
   height: number
 }
 
-export interface Tile {
+export interface Tiles {
+  mode: Mode
   rows?: number
   columns?: number
   width?: number
@@ -40,9 +41,3 @@ export interface Output {
  * 3.3 Name preffix to slices -> name
  * 3.4 Extension to slices -> extension => jpg | png | bmp | gif | tiff
  **/
-
-export interface Options {
-  mode: Mode
-  tiles?: Tile
-  output?: Output
-}

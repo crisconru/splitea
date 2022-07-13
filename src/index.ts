@@ -1,11 +1,11 @@
 import path from 'path'
 import { Mode } from './enums'
 import { Splitea } from './splitea'
-import { Options } from './types'
+import { Tiles } from './types'
 
 const IMG = path.join(__dirname, '..', 'examples', 'mapabosque.png')
 console.log(IMG)
-const OPTIONS: Options = {
+const TILES: Tiles = {
   mode: Mode.Grid
 }
 
@@ -15,6 +15,6 @@ const OPTIONS: Options = {
 //   })
 //   .catch(err => console.log(err))
 
-Splitea(IMG, OPTIONS)
+Splitea(IMG, TILES)
   .then(res => console.log(res))
   .catch(error => console.error(error))

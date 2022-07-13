@@ -59,11 +59,11 @@ const checkModeVertical = (rows: any, height: any, size: Size): void => {
   }
 }
 
-export const parseModeTiles = (mode: Mode, tiles: any, size: Size): boolean => {
+export const parseTiles = (tiles: any, size: Size): boolean => {
+  const { mode, rows, columns, width, height } = tiles
   // Parse Mode
   parseMode(mode)
   // Parse Tiles -> rows, columns,  width,  eight
-  const { rows, columns, width, height } = tiles
   switch (mode) {
     // Mode Grid -> rows + columns || width + height
     case Mode.Grid:
@@ -83,12 +83,8 @@ export const parseModeTiles = (mode: Mode, tiles: any, size: Size): boolean => {
   return true
 }
 
-export const parseOptions = (options: any, size: Size): boolean => {
-  // Mode + Tiles
-  parseModeTiles(options.mode, options?.tiles, size)
-  // Name
-  // Extension
-  // Unique
+export const parseOutput = (output: any): boolean => {
+  console.log(output)
   return true
 }
 
