@@ -1,4 +1,4 @@
-import { Mode } from './enums'
+import { Data, Mode } from './enums'
 import { SpliteaError } from './errors'
 import { Size } from './types'
 
@@ -83,8 +83,17 @@ export const parseTiles = (tiles: any, size: Size): boolean => {
   return true
 }
 
+export const parseData = (data: any): boolean => {
+  const datas = [Data.Buffer, Data.Path]
+  if (!datas.includes(data)) {
+    throw new SpliteaError('Invalid output data, it should be "buffer" or "path"')
+  }
+  return true
+}
+
 export const parseOutput = (output: any): boolean => {
-  console.log(output)
+  const { data } = output
+  parseData(data)
   return true
 }
 
