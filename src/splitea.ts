@@ -1,6 +1,6 @@
 import Jimp from 'jimp'
 import { SpliteaError, throwError } from './errors'
-import { Size, Images, Tiles, Output } from './types'
+import { Size, Tiles, Output, Image } from './types'
 import { parseOutput, parseTiles } from './utils'
 
 export const getSize = async (IMG: string): Promise<Size> => {
@@ -23,7 +23,7 @@ export const readImage = async (image: string): Promise<Jimp> => {
   }
 }
 
-export const Splitea = async (image: string, tiles?: Tiles, output?: Output): Promise<Images | undefined | never> => {
+export const Splitea = async (image: string, tiles?: Tiles, output?: Output): Promise<Image[] | undefined | never> => {
   try {
     // Leer la imagen
     const img = await readImage(image)

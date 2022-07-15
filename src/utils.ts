@@ -1,5 +1,6 @@
+import { existsSync, accessSync, constants } from 'fs'
 import { Data, Mode } from './enums'
-import { SpliteaError } from './errors'
+import { SpliteaError, throwError } from './errors'
 import { Size } from './types'
 
 export const parseMode = (mode: any): any => {
@@ -61,9 +62,9 @@ const checkModeVertical = (rows: any, height: any, size: Size): void => {
 
 export const parseTiles = (tiles: any, size: Size): boolean => {
   const { mode, rows, columns, width, height } = tiles
-  // Parse Mode
+  // Mode
   parseMode(mode)
-  // Parse Tiles -> rows, columns,  width,  eight
+  // Mode + Options -> rows, columns,  width, height
   switch (mode) {
     // Mode Grid -> rows + columns || width + height
     case Mode.Grid:
@@ -78,7 +79,7 @@ export const parseTiles = (tiles: any, size: Size): boolean => {
       checkModeVertical(rows, height, size)
       break
   }
-  // Parse Tiles.unique
+  // Unique
   parseUnique(tiles)
   return true
 }
@@ -91,9 +92,39 @@ export const parseData = (data: any): boolean => {
   return true
 }
 
+export const parsePath = (path: any): boolean => {
+  // Check if path is string
+  if (typeof path === 'string' || path instanceof String) {
+    // Check if path exist
+    if (existsSync(path as string | Buffer | URL)) {
+      // Check if can write
+      try {
+        accessSync(path as string | Buffer | URL, constants.W_OK)
+        return true
+      } catch (err) {
+        throwError(err)
+      }
+    }
+    const error = `Not exists path ${path as string}`
+    throw new SpliteaError(error)
+  }
+  throw new SpliteaError('Path needs to be string')
+}
+
+export const parseName = (): boolean => true
+
+export const parseExtension = (): boolean => true
+
 export const parseOutput = (output: any): boolean => {
-  const { data } = output
+  const { data, path } = output
+  // Data
   parseData(data)
+  // Path
+  parsePath(path)
+  // Name
+  parseName()
+  // Extension
+  parseExtension()
   return true
 }
 

@@ -1,14 +1,15 @@
-import path from 'path'
+import Path from 'path'
+import fs from  'fs'
 import { Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
 import { Size, Tiles } from '../src/types'
-import { isNatural, isSubmultiple, parseData, parseMode, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { isNatural, isSubmultiple, parseData, parseMode, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
-const imgFolder = path.join(__dirname, '..', 'examples')
+const imgFolder = Path.join(__dirname, '..', 'examples')
 
 const imgTest = {
-  img: path.join(imgFolder, 'forestmap.png'),
-  imgBad: path.join(imgFolder, 'forestmapp.png'),
+  img: Path.join(imgFolder, 'forestmap.png'),
+  imgBad: Path.join(imgFolder, 'forestmapp.png'),
   width: 320,
   height: 224
 }
@@ -235,5 +236,41 @@ describe('Test Utils Module', () => {
         expect(parseData('buffer')).toBeTruthy()
       })
     })
+
+    describe('parsePath', () => {
+      test('Invalid path', () => {
+        const error = new SpliteaError('Path needs to be string')
+        expect(() => parsePath(null)).toThrow(error)
+        expect(() => parsePath(undefined)).toThrow(error)
+        expect(() => parsePath(false)).toThrow(error)
+        expect(() => parsePath(1)).toThrow(error)
+        expect(() => parsePath(['./test'])).toThrow(error)
+        expect(() => parsePath({ path: './test' })).toThrow(error)
+      })
+
+      test('Not exists path', () => {
+        let testPath = new Date().getTime().toString()
+        let error = new SpliteaError(`Not exists path ${testPath}`)
+        expect(() => parsePath(testPath)).toThrow(error)
+        testPath = Path.join(__dirname, new Date().toString())
+        error = new SpliteaError(`Not exists path ${testPath}`)
+        expect(() => parsePath(testPath)).toThrow(error)
+      })
+
+      test('No write permission path', () => {
+        const tmpFolder = Path.join(__dirname, new Date().getTime().toString())
+        fs.mkdirSync(tmpFolder, { mode: 0o444 })
+        expect(() => parsePath(tmpFolder)).toThrow(SpliteaError)
+        fs.rmdirSync(tmpFolder)
+      })
+
+      test('Valid path', () => {
+        expect(parsePath(__dirname)).toBeTruthy()
+      })
+    })
+
+    describe('parseName', () => {})
+
+    // describe('parseExtension', () => {})
   })
 })
