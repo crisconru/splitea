@@ -1,9 +1,9 @@
 import Path from 'path'
 import fs from 'fs'
-import { Mode } from '../src/enums'
+import { Extension, Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
 import { Size, Tiles } from '../src/types'
-import { isNatural, isSubmultiple, parseData, parseMode, parseName, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { isNatural, isSubmultiple, parseData, parseExtension, parseMode, parseName, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
 const imgFolder = Path.join(__dirname, '..', 'examples')
 
@@ -289,6 +289,31 @@ describe('Test Utils Module', () => {
       })
     })
 
-    // describe('parseExtension', () => {})
+    describe('parseExtension', () => {
+      test('Extension not string', () => {
+        const error = new SpliteaError('extension needs to be string')
+        expect(() => parseExtension(undefined)).toThrow(error)
+        expect(() => parseExtension(null)).toThrow(error)
+        expect(() => parseExtension(false)).toThrow(error)
+        expect(() => parseExtension(true)).toThrow(error)
+        expect(() => parseExtension(1)).toThrow(error)
+        expect(() => parseExtension(['jpg'])).toThrow(error)
+        expect(() => parseExtension({ jpg: 'jpg' })).toThrow(error)
+      })
+
+      test('Extension not valid', () => {
+        const values = Object.values(Extension)
+        const extensions = ['pnj', 'jepg', 'giff', 'tif']
+        extensions.forEach(extension => {
+          const err = new SpliteaError(`${extension} needs to be one of this extensions -> ${values.toString()}`)
+          expect(() => parseExtension(extension)).toThrow(err)
+        })
+      })
+
+      test('Extension valid', () => {
+        const extensions = ['png', 'jpg', 'jpeg', 'gif', 'tiff']
+        extensions.forEach(extension => expect(extension).toBeTruthy())
+      })
+    })
   })
 })

@@ -2,7 +2,7 @@
 import { existsSync, accessSync, constants } from 'fs'
 // import isValidFilename from 'valid-filename'
 // import filenameReservedRegex, { windowsReservedNameRegex } from 'filename-reserved-regex'
-import { Data, Mode } from './enums'
+import { Data, Extension, Mode } from './enums'
 import { SpliteaError, throwError } from './errors'
 import { Size } from './types'
 
@@ -123,10 +123,17 @@ export const parseName = (name: any): boolean => {
   return true
 }
 
-export const parseExtension = (): boolean => true
+export const parseExtension = (extension: any): boolean => {
+  // Check if string
+  if (!isString(extension)) { throw new SpliteaError('extension needs to be string') }
+  // Check if valid extension
+  const values = Object.values(Extension)
+  if (!values.includes(extension)) { throw new SpliteaError(`${extension as string} needs to be one of this extensions -> ${values.toString()}`) }
+  return true
+}
 
 export const parseOutput = (output: any): boolean => {
-  const { data, path, name } = output
+  const { data, path, name, extension } = output
   // Data
   parseData(data)
   // Path
@@ -134,7 +141,7 @@ export const parseOutput = (output: any): boolean => {
   // Name
   parseName(name)
   // Extension
-  parseExtension()
+  parseExtension(extension)
   return true
 }
 
