@@ -43,6 +43,7 @@
     ]
   },
   "dependencies": {
-    "jimp": "^0.16.0"
+    "jimp": "^0.16.0",
+    "valid-filename": "^4.0.0"
   }
 }

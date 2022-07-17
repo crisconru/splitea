@@ -1,9 +1,9 @@
 import Path from 'path'
-import fs from  'fs'
+import fs from 'fs'
 import { Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
 import { Size, Tiles } from '../src/types'
-import { isNatural, isSubmultiple, parseData, parseMode, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { isNatural, isSubmultiple, parseData, parseMode, parseName, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
 const imgFolder = Path.join(__dirname, '..', 'examples')
 
@@ -239,7 +239,7 @@ describe('Test Utils Module', () => {
 
     describe('parsePath', () => {
       test('Invalid path', () => {
-        const error = new SpliteaError('Path needs to be string')
+        const error = new SpliteaError('path needs to be string')
         expect(() => parsePath(null)).toThrow(error)
         expect(() => parsePath(undefined)).toThrow(error)
         expect(() => parsePath(false)).toThrow(error)
@@ -269,7 +269,25 @@ describe('Test Utils Module', () => {
       })
     })
 
-    describe('parseName', () => {})
+    describe('parseName', () => {
+      test('Invalid type of name', () => {
+        const error = new SpliteaError('name needs to be string')
+        expect(() => parseName(null)).toThrow(error)
+        expect(() => parseName(undefined)).toThrow(error)
+        expect(() => parseName(false)).toThrow(error)
+        expect(() => parseName(1)).toThrow(error)
+        expect(() => parseName(['test'])).toThrow(error)
+        expect(() => parseName({ test: 'test' })).toThrow(error)
+      })
+
+      // test('Invalid OS name', () => {
+      //   TODO:
+      // })
+
+      test('Valid name', () => {
+        expect(parseName('hola.txt')).toBeTruthy()
+      })
+    })
 
     // describe('parseExtension', () => {})
   })

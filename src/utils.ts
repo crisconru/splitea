@@ -1,7 +1,12 @@
+// import { platform } from 'os'
 import { existsSync, accessSync, constants } from 'fs'
+// import isValidFilename from 'valid-filename'
+// import filenameReservedRegex, { windowsReservedNameRegex } from 'filename-reserved-regex'
 import { Data, Mode } from './enums'
 import { SpliteaError, throwError } from './errors'
 import { Size } from './types'
+
+const isString = (str: any): boolean => typeof str === 'string' || str instanceof String
 
 export const parseMode = (mode: any): any => {
   if (!Object.values(Mode).includes(mode)) {
@@ -94,35 +99,40 @@ export const parseData = (data: any): boolean => {
 
 export const parsePath = (path: any): boolean => {
   // Check if path is string
-  if (typeof path === 'string' || path instanceof String) {
-    // Check if path exist
-    if (existsSync(path as string | Buffer | URL)) {
-      // Check if can write
-      try {
-        accessSync(path as string | Buffer | URL, constants.W_OK)
-        return true
-      } catch (err) {
-        throwError(err)
-      }
-    }
-    const error = `Not exists path ${path as string}`
-    throw new SpliteaError(error)
+  if (!isString(path)) { throw new SpliteaError('path needs to be string') }
+  // Check if path exist
+  if (!existsSync(path as string | Buffer | URL)) { throw new SpliteaError(`Not exists path ${path as string}`) }
+  // Check if can write
+  try {
+    accessSync(path as string | Buffer | URL, constants.W_OK)
+  } catch (err) {
+    throw throwError(err)
   }
-  throw new SpliteaError('Path needs to be string')
+  return true
 }
 
-export const parseName = (): boolean => true
+export const parseName = (name: any): boolean => {
+  // Check if string
+  if (!isString(name)) { throw new SpliteaError('name needs to be string') }
+  // Check OS valid filename
+  // if (!isValidFilename(name as string)) { throw new SpliteaError(`${String(name)} is not a valid filename`) }
+  // const invalidFilename: boolean = (platform() === 'win32')
+  //   ? windowsReservedNameRegex().test(name)
+  //   : filenameReservedRegex().test(name)
+  // if (invalidFilename) { throw new SpliteaError(`${String(name)} is not a valid filename`) }
+  return true
+}
 
 export const parseExtension = (): boolean => true
 
 export const parseOutput = (output: any): boolean => {
-  const { data, path } = output
+  const { data, path, name } = output
   // Data
   parseData(data)
   // Path
   parsePath(path)
   // Name
-  parseName()
+  parseName(name)
   // Extension
   parseExtension()
   return true

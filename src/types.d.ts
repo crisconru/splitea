@@ -41,3 +41,5 @@ export interface Output {
   name?: string
   extension?: Extension
 }
+
+export type isValidFilename = (filename: string) => boolean
