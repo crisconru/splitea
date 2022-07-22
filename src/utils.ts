@@ -1,7 +1,4 @@
-// import { platform } from 'os'
 import { existsSync, accessSync, constants } from 'fs'
-// import isValidFilename from 'valid-filename'
-// import filenameReservedRegex, { windowsReservedNameRegex } from 'filename-reserved-regex'
 import { Data, Extension, Mode } from './enums'
 import { SpliteaError, throwError } from './errors'
 import { Size } from './types'
@@ -115,11 +112,13 @@ export const parseName = (name: any): boolean => {
   // Check if string
   if (!isString(name)) { throw new SpliteaError('name needs to be string') }
   // Check OS valid filename
-  // if (!isValidFilename(name as string)) { throw new SpliteaError(`${String(name)} is not a valid filename`) }
-  // const invalidFilename: boolean = (platform() === 'win32')
-  //   ? windowsReservedNameRegex().test(name)
-  //   : filenameReservedRegex().test(name)
-  // if (invalidFilename) { throw new SpliteaError(`${String(name)} is not a valid filename`) }
+  // Windows Regex = /^(con|prn|aux|nul|com\d|lpt\d)$/i
+  const windowsReservedNameRegex = /^(con|prn|aux|nul|com\d|lpt\d)$/
+  const invalidWindowsFilename = new RegExp(windowsReservedNameRegex, 'i')
+  // All OS except Windows Regex = /[<>:"/\\|?*\u0000-\u001F]/g
+  const filenameReservedRegex = '[<>:"/\\|?*\u0000-\u001F]'
+  const invalidFilename = new RegExp(filenameReservedRegex, 'g')
+  if (invalidFilename.test(name as string) || invalidWindowsFilename.test(name as string)) { throw new SpliteaError(`${String(name)} is not a valid filename`) }
   return true
 }
 
@@ -136,12 +135,15 @@ export const parseOutput = (output: any): boolean => {
   const { data, path, name, extension } = output
   // Data
   parseData(data)
-  // Path
-  parsePath(path)
-  // Name
-  parseName(name)
-  // Extension
-  parseExtension(extension)
+  // Check if save => data = path || name != undefined
+  if (data === 'path' || name !== undefined) {
+    // Path
+    if (path !== undefined) { parsePath(path) }
+    // Name
+    parseName(name)
+    // Extension
+    if (extension !== undefined) { parseExtension(extension) }
+  }
   return true
 }
 

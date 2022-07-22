@@ -1,9 +1,9 @@
 import Path from 'path'
 import fs from 'fs'
-import { Extension, Mode } from '../src/enums'
+import { Data, Extension, Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
-import { Size, Tiles } from '../src/types'
-import { isNatural, isSubmultiple, parseData, parseExtension, parseMode, parseName, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { Output, Size, Tiles } from '../src/types'
+import { isNatural, isSubmultiple, parseData, parseExtension, parseMode, parseName, parseOutput, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
 
 const imgFolder = Path.join(__dirname, '..', 'examples')
 
@@ -280,9 +280,35 @@ describe('Test Utils Module', () => {
         expect(() => parseName({ test: 'test' })).toThrow(error)
       })
 
-      // test('Invalid OS name', () => {
-      //   TODO:
-      // })
+      test('Invalid OS name', () => {
+        // Invalid filenames
+        let name = 'foo/bar'
+        let error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'foo\u0000bar'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'foo\u001Fbar'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'foo*bar'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'foo:bar'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'AUX'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        name = 'com1'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
+        expect(() => parseName(name)).toThrow(error)
+        // Valid filenames
+        name = 'foo-bar'
+        expect(parseName(name)).toBeTruthy()
+        name = 'foo\\bar'
+        expect(parseName(name)).toBeTruthy()
+      })
 
       test('Valid name', () => {
         expect(parseName('hola.txt')).toBeTruthy()
@@ -313,6 +339,22 @@ describe('Test Utils Module', () => {
       test('Extension valid', () => {
         const extensions = ['png', 'jpg', 'jpeg', 'gif', 'tiff']
         extensions.forEach(extension => expect(extension).toBeTruthy())
+      })
+    })
+
+    describe('parseOutput', () => {
+      describe('data = buffer', () => {
+        test('only data', () => {
+          const output: Output = { data: Data.Buffer }
+          expect(parseOutput(output)).toBeTruthy()
+        })
+
+        test('name', () => {
+          const output: Output = { data: Data.Buffer, name: 'test' }
+          expect(parseOutput(output)).toBeTruthy()
+          const error = { data: Data.Buffer, name: 123 }
+          expect(() => parseOutput(error)).toThrow(SpliteaError)
+        })
       })
     })
   })
