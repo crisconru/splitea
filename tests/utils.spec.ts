@@ -281,31 +281,40 @@ describe('Test Utils Module', () => {
       })
 
       test('Invalid OS name', () => {
+        let name: string
+        let error: SpliteaError
         // Invalid filenames
-        let name = 'foo/bar'
-        let error = new SpliteaError(`${String(name)} is not a valid filename`)
+        name = 'foo/bar'
+        error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'foo\u0000bar'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'foo\u001Fbar'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'foo*bar'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'foo:bar'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'AUX'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
+
         name = 'com1'
         error = new SpliteaError(`${String(name)} is not a valid filename`)
         expect(() => parseName(name)).toThrow(error)
         // Valid filenames
         name = 'foo-bar'
         expect(parseName(name)).toBeTruthy()
+
         name = 'foo\\bar'
         expect(parseName(name)).toBeTruthy()
       })
@@ -344,15 +353,29 @@ describe('Test Utils Module', () => {
 
     describe('parseOutput', () => {
       describe('data = buffer', () => {
-        test('only data', () => {
+        test('No store tiles -> No name', () => {
           const output: Output = { data: Data.Buffer }
           expect(parseOutput(output)).toBeTruthy()
         })
 
-        test('name', () => {
+        test('Store tiles -> name', () => {
           const output: Output = { data: Data.Buffer, name: 'test' }
           expect(parseOutput(output)).toBeTruthy()
           const error = { data: Data.Buffer, name: 123 }
+          expect(() => parseOutput(error)).toThrow(SpliteaError)
+        })
+      })
+      describe('data = path', () => {
+        test('Error -> No name', () => {
+          const error = new SpliteaError('"name" is required')
+          const output: Output = { data: Data.Path }
+          expect(() => parseOutput(output)).toThrow(error)
+        })
+
+        test('Store tiles', () => {
+          const output: Output = { data: Data.Path, name: 'test' }
+          expect(parseOutput(output)).toBeTruthy()
+          const error = { data: Data.Path, name: 123 }
           expect(() => parseOutput(error)).toThrow(SpliteaError)
         })
       })

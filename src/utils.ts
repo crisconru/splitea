@@ -5,14 +5,12 @@ import { Size } from './types'
 
 const isString = (str: any): boolean => typeof str === 'string' || str instanceof String
 
-export const parseMode = (mode: any): any => {
-  if (!Object.values(Mode).includes(mode)) {
-    throw new SpliteaError(`Invalid mode, only ${Mode.Grid}, ${Mode.Horizontal}, ${Mode.Vertical} is permitted`)
-  }
-  return mode
+export const parseMode = (mode: any): Mode => {
+  if (Object.values(Mode).includes(mode)) return mode
+  throw new SpliteaError(`Invalid mode, only ${Mode.Grid}, ${Mode.Horizontal}, ${Mode.Vertical} is permitted`)
 }
 
-export const isNatural = (number: any): boolean => typeof number === 'number' && String(number).split('.').length === 1 && number > 0
+export const isNatural = (num: any): boolean => (typeof num === 'number') && (String(num).split('.').length === 1) && (num > 0)
 
 export const validPairNaturalNumbers = (first: any, second: any): boolean => isNatural(first) && isNatural(second)
 
@@ -103,7 +101,7 @@ export const parsePath = (path: any): boolean => {
   try {
     accessSync(path as string | Buffer | URL, constants.W_OK)
   } catch (err) {
-    throw throwError(err)
+    throw throwError(err, `Problems parsing path ${String(path)}`)
   }
   return true
 }
@@ -131,113 +129,27 @@ export const parseExtension = (extension: any): boolean => {
   return true
 }
 
+const parseStore = (path: any, name: any, extension: any): boolean => {
+  // Path
+  if (path !== undefined) { parsePath(path) }
+  // Name
+  parseName(name)
+  // Extension
+  if (extension !== undefined) { parseExtension(extension) }
+  return true
+}
+
 export const parseOutput = (output: any): boolean => {
   const { data, path, name, extension } = output
   // Data
   parseData(data)
+  // Check if save => data = path
+  if (data === 'path') {
+    if (name === undefined) { throw new SpliteaError('"name" is required') }
+    parseStore(path, name, extension)
   // Check if save => data = path || name != undefined
-  if (data === 'path' || name !== undefined) {
-    // Path
-    if (path !== undefined) { parsePath(path) }
-    // Name
-    parseName(name)
-    // Extension
-    if (extension !== undefined) { parseExtension(extension) }
+  } else if (name !== undefined) {
+    parseStore(path, name, extension)
   }
   return true
 }
-
-// const writeImage = (image: Jimp, name: string, index: number, extension: string): string => {
-//   const filename = `${name}_${index}_${new Date().getTime()}${extension}`
-//   image.write(filename)
-//   return filename
-// }
-
-// const getSplitImage = (image: Jimp, x: number, y: number, w: number, h: number): Jimp => {
-//   try {
-//     return image.clone().autocrop().crop(x, y, w, h)
-//   } catch (err) {
-//     if (err instanceof SpliteaError) { throw err }
-//     console.log(err)
-//     throw new SpliteaError('Problem spliting image')
-//   }
-// }
-
-// const getSlicesVertical = async (image: Jimp, slicesNumber: number): Promise<Jimp[]> => {
-//   try {
-//     const { width, height } = image.bitmap
-//     const step = Math.floor(height / slicesNumber)
-//     let slices: Jimp[] = []
-//     const x = 0
-//     const w = width
-//     const h = step
-//     for (let i = 0; i < slicesNumber; i++) {
-//       const y = i * step
-//       const newHeight = ((y + h) <= height) ? h : height - y
-//       const slice = getSplitImage(image, x, y, w, newHeight)
-//       if (slice.bitmap.height < height) {
-//         slices.push(slice)
-//       }
-//     }
-//     return slices
-//   } catch (error) {
-//     if (error instanceof SpliteaError) { throw error }
-//     console.log(error)
-//     throw new SpliteaError('Problem with getting vertical slices')
-//   }
-// }
-
-// const getSlicesHorizontal = async (image: Jimp, slicesNumber: number): Promise<Jimp[]> => {
-//   try {
-//     const { width, height } = image.bitmap
-//     const step = Math.floor(width / slicesNumber)
-//     let slices: Jimp[] = []
-//     const y = 0
-//     const w = step
-//     const h = height
-//     for (let i = 0; i < slicesNumber; i++) {
-//       const x = i * step
-//       const newWidth = ((x + w) <= width) ? w : width - x
-//       console.log(`
-//         Image of ${width} x ${height} px
-//         x = ${x} px - w = ${newWidth} px
-//         y = ${y} px - h = ${h} px
-//       `)
-//       const slice = getSplitImage(image, x, y, newWidth, h)
-//       if (slice.bitmap.width < width) {
-//         slices.push(slice)
-//       }
-//     }
-//     return slices
-//   } catch (error) {
-//     if (error instanceof SpliteaError) { throw error }
-//     console.error(error)
-//     throw new SpliteaError('Problem with getting horizontal slices')
-//   }
-// }
-
-// const splitImageVertical = async (image: Jimp, slicesNumber: number): Promise<string[]> => {
-//   try {
-//     const slices = await getSlicesVertical(image, slicesNumber)
-//     if (slices.length === 0) { return [] }
-//     const { name, ext } = path.parse(image)
-//     return slices.map((slice, index) => writeImage(slice, name, index, ext))
-//   } catch (error) {
-//     if (error instanceof SpliteaError) { throw error }
-//     console.log(error)
-//     throw new SpliteaError('Problem writting vertical slices')
-//   }
-// }
-
-// const splitImageHorizontal = async (image: Jimp, slicesNumber: number): Promise<string[]> => {
-//   try {
-//     const slices = await getSlicesHorizontal(image, slicesNumber)
-//     if (slices.length === 0) { return [] }
-//     const { name, ext } = path.parse(IMG)
-//     return slices.map((slice, index) => writeImage(slice, name, index, ext))
-//   } catch (error) {
-//     if (error instanceof SpliteaError) { throw error }
-//     console.log(error)
-//     throw new SpliteaError('Problem writting vertical slices')
-//   }
-// }

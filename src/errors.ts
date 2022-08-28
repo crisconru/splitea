@@ -6,8 +6,8 @@ export class SpliteaError extends Error {
   }
 }
 
-export const throwError = (error: any): SpliteaError => {
+export const throwError = (error: any, msg: string): SpliteaError => {
   if (error instanceof SpliteaError) { return error }
   console.error(error)
-  return new SpliteaError(String(error))
+  return new SpliteaError(msg + '\n' + String(error))
 }
