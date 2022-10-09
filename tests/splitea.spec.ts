@@ -1,8 +1,9 @@
 import path from 'path'
-import { getGridTiles, getHorizontalTiles, getSplitImage, getTiles, getVerticalTiles, readImage } from '../src/splitea'
+import { areEqualImages, getGridTiles, getHorizontalTiles, getSplitImage, getTiles, getVerticalTiles, readImage, uniqueTiles } from '../src/splitea'
 import { SpliteaError } from '../src/errors'
 import { Tiles } from '../src/types'
 import { Mode } from '../src/enums'
+// import Jimp from 'jimp/*'
 
 const imgFolder = path.join(__dirname, '..', 'examples')
 
@@ -10,7 +11,8 @@ const imgTest = {
   img: path.join(imgFolder, 'forestmap.png'),
   imgBad: path.join(imgFolder, 'forestmapp.png'),
   width: 320,
-  height: 224
+  height: 224,
+  imgSatie: path.join(imgFolder, 'Ericsatie.jpg')
 }
 
 describe('Test Splitea Module', () => {
@@ -61,7 +63,7 @@ describe('Test Splitea Module', () => {
     })
   })
 
-  describe(' Get Horizontal Tiles', () => {
+  describe('Get Horizontal Tiles', () => {
     test('Providing width & columns', async () => {
       const [img, size] = await readImage(imgTest.img)
       const width = 1
@@ -92,7 +94,7 @@ describe('Test Splitea Module', () => {
     })
   })
 
-  describe(' Get Vertical Tiles', () => {
+  describe('Get Vertical Tiles', () => {
     test('Providing height & rows', async () => {
       const [img, size] = await readImage(imgTest.img)
       const height = 1
@@ -265,5 +267,29 @@ describe('Test Splitea Module', () => {
     })
   })
 
-  // describe('Unique tiles', () => {})
+  describe('Unique tiles', () => {
+    test('Test areEqualImages', async () => {
+      const [img, _] = await readImage(imgTest.img)
+      const [imgSatie, __] = await readImage(imgTest.imgSatie)
+      // Equals
+      expect(areEqualImages(img, img)).toBeTruthy()
+      expect(areEqualImages(imgSatie, imgSatie)).toBeTruthy()
+      // Differents
+      expect(areEqualImages(img, imgSatie)).toBeFalsy()
+      expect(areEqualImages(imgSatie, img)).toBeFalsy()
+    })
+
+    test('uniqueTiles', async () => {
+      const [img1, _i1] = await readImage(imgTest.img)
+      const [img2, _i2] = await readImage(imgTest.img)
+      const [imgSatie1, _is1] = await readImage(imgTest.imgSatie)
+      const [imgSatie2, _is2] = await readImage(imgTest.imgSatie)
+      const uniques = uniqueTiles([img1, imgSatie1, img2, imgSatie2])
+      expect(uniques.length).toBe(2)
+      const i1 = uniques[0]
+      const is1 = uniques[1]
+      expect(areEqualImages(i1, img1)).toBeTruthy()
+      expect(areEqualImages(is1, imgSatie1)).toBeTruthy()
+    })
+  })
 })

@@ -127,7 +127,10 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
   try {
     const distance = Jimp.distance(img1, img2)
     const diff = Jimp.diff(img1, img2)
-    if (distance < 0.15 || diff.percent < 0.15) return true
+    if (distance < 0.15 && diff.percent < 0.15) {
+      console.log(`distance = ${distance} | diff = ${diff.percent}`)
+      return true
+    }
   } catch (error) {
     console.log(error)
     throwError(error, 'Error comparing images')
@@ -135,8 +138,12 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
   return false
 }
 
-export const uniqueTiles = (imgs: Image[]): Image[] => {
-  return imgs
+export const uniqueTiles = (imgs: Jimp[]): Jimp[] => {
+  if (imgs.length === 0) return []
+  if (imgs.length === 1) return [imgs[0]]
+  const unique = imgs[0]
+  const arr = imgs.slice(1).filter(elem => !areEqualImages(unique, elem))
+  return [unique, ...uniqueTiles(arr)]
 }
 
 export const Splitea = async (image: string, tiles: Tiles, output?: Output): Promise<Image[] | undefined | never> => {
@@ -148,11 +155,11 @@ export const Splitea = async (image: string, tiles: Tiles, output?: Output): Pro
     // Check output options
     parseOutput(output)
     // Get tiles
-    const tmpSlices = getTiles(img, size, tiles)
+    const tmpSlices = getTiles(img, size, tiles) as Jimp[]
     // Remove similars
     const uniqueSlices = (tiles?.unique === true) ? uniqueTiles(tmpSlices) : tmpSlices
     // Store tiles
-    if (output.)
+    // if (output)
     // Return tiles
     const slices = uniqueSlices
     return await Promise.resolve(slices)
