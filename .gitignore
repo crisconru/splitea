@@ -1,3 +1,9 @@
+# Custom
+.vscode
+.idea
+.DS_Store
+lib
+
 # Logs
 logs
 *.log
@@ -59,7 +65,6 @@ typings/
 .rts2_cache_es/
 .rts2_cache_umd/
 
-# Optional REPL history
 .node_repl_history
 
 # Output of 'npm pack'
