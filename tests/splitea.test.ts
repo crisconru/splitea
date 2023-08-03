@@ -4,6 +4,7 @@ import { SpliteaError } from '../src/errors'
 import { Tiles } from '../src/types'
 import { Mode } from '../src/enums'
 // import Jimp from 'jimp/*'
+import { describe, test, expect } from 'vitest'
 
 const imgFolder = path.join(__dirname, '..', 'examples')
 

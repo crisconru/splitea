@@ -1,15 +1,16 @@
-import Path from 'path'
+import path from 'path'
 import fs from 'fs'
 import { Data, Extension, Mode } from '../src/enums'
 import { SpliteaError } from '../src/errors'
 import { Output, Size, Tiles } from '../src/types'
 import { isNatural, isSubmultiple, parseData, parseExtension, parseMode, parseName, parseOutput, parsePath, parseTiles, parseUnique, validPairNaturalNumbers, validPairSubmultiples } from '../src/utils'
+import { describe, test, expect } from 'vitest'
 
-const imgFolder = Path.join(__dirname, '..', 'examples')
+const imgFolder = path.join(__dirname, '..', 'examples')
 
 const imgTest = {
-  img: Path.join(imgFolder, 'forestmap.png'),
-  imgBad: Path.join(imgFolder, 'forestmapp.png'),
+  img: path.join(imgFolder, 'forestmap.png'),
+  imgBad: path.join(imgFolder, 'forestmapp.png'),
   width: 320,
   height: 224
 }
@@ -252,13 +253,13 @@ describe('Test Utils Module', () => {
         let testPath = new Date().getTime().toString()
         let error = new SpliteaError(`Not exists path ${testPath}`)
         expect(() => parsePath(testPath)).toThrow(error)
-        testPath = Path.join(__dirname, new Date().toString())
+        testPath = path.join(__dirname, new Date().toString())
         error = new SpliteaError(`Not exists path ${testPath}`)
         expect(() => parsePath(testPath)).toThrow(error)
       })
 
       test('No write permission path', () => {
-        const tmpFolder = Path.join(__dirname, new Date().getTime().toString())
+        const tmpFolder = path.join(__dirname, new Date().getTime().toString())
         fs.mkdirSync(tmpFolder, { mode: 0o444 })
         expect(() => parsePath(tmpFolder)).toThrow(SpliteaError)
         fs.rmdirSync(tmpFolder)
