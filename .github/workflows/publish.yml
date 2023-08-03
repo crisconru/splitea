@@ -36,10 +36,6 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main'
 
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x]
-
     steps:
       - name: 👍 Checkout
         uses: actions/checkout@v3
@@ -47,7 +43,7 @@ jobs:
       - name: ❇️ Setup node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
           registry-url: 'https://registry.npmjs.org'
  
       - name: 📥 Install Dependencies
