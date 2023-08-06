@@ -14,7 +14,7 @@ export const Splitea = async (image: Image, tiles: Tiles, output?: Output): Prom
     checkTiles(tiles, size)
     parseOutput(output)
     // 3. Get the tiles
-    const newTiles = getTiles(img, size, tiles) as Jimp[]
+    const newTiles = getTiles(img, size, tiles)
     // 4. Get the output
     // 5. Return solution
     // Check tiles options

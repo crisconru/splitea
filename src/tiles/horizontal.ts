@@ -1,14 +1,19 @@
 import Jimp from "jimp"
-import { Image, Size } from "../types"
+import { HorizontalTiles, Image, Size } from "../types"
 import { SpliteaError, throwError } from "../errors"
 import { getSplitImage } from "../image"
 import { isSubmultiple } from "../utils"
 
-export const checkModeHorizontal = (columns: number, width: number, size: Size): void => {
+export const checkHorizontalTiles = (tiles: HorizontalTiles, size: Size): void => {
+  const { columns, width } = tiles
   // At least Columns or Width is non zero
   if (columns === 0 && width === 0) {
     const msg = 'you need to provide one natural number, columns or width (px)'
     throw new SpliteaError(msg)
+  }
+  // Just Columns or Width but not both
+  if (columns > 0 && width > 0) {
+    throw new SpliteaError(`You have to enter columns or width, but not both`)
   }
   // Image Width is multiple of Columns
   if (columns > 0 && !isSubmultiple(size.width, columns)) {

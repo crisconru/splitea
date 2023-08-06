@@ -1,14 +1,19 @@
 import Jimp from "jimp"
-import { Image, Size } from "../types"
+import { Image, Size, VerticalTiles } from "../types"
 import { SpliteaError, throwError } from "../errors"
 import { getSplitImage } from "../image"
 import { isSubmultiple } from "../utils"
 
-export const checkModeVertical = (rows: number, height: number, size: Size): void => {
+export const checkVerticalTiles = (tiles: VerticalTiles, size: Size): void => {
+  const { rows, height } = tiles
   // At least Rows or Height is non zero
   if (rows === 0 && height === 0) {
     const msg = 'you need to provide one natural number, rows or height (px)'
     throw new SpliteaError(msg)
+  }
+  // Just Rows or Height but not both
+  if (rows > 0 && height > 0) {
+    throw new SpliteaError(`You have to enter rows or height, but not both`)
   }
   // Image Height is multiple of Rows
   if (rows > 0 && !isSubmultiple(size.height, rows)) {

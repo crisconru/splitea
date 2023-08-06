@@ -37,9 +37,12 @@ export const TilesSchema = z.object({
 })
 export type Tiles = z.infer<typeof TilesSchema>
 // Modes Parser
-export const HorizontalSchema = TilesSchema.pick({ columns: true, width: true })
-export const VerticalSchema = TilesSchema.pick({ rows: true, height: true })
-export const GridSchema = TilesSchema.pick({ rows: true, height: true })
+export const HorizontalTilesSchema = TilesSchema.pick({ columns: true, width: true })
+export type HorizontalTiles = z.infer<typeof HorizontalTilesSchema>
+export const VerticalTilesSchema = TilesSchema.pick({ rows: true, height: true })
+export type VerticalTiles = z.infer<typeof VerticalTilesSchema>
+export const GridTilesSchema = TilesSchema.omit({ mode: true, unique: true })
+export type GridTiles = z.infer<typeof GridTilesSchema>
 
 /**
  * 1. Data to return -> data => "buffer" | "path"
