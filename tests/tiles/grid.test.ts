@@ -3,17 +3,17 @@ import { GridTiles, Size } from '../../src/types'
 import { SpliteaError } from '../../src/errors'
 import { checkGridTiles } from '../../src/tiles/grid'
 
-describe('Grid tiles', () => {
-  test('checkGridTiles', () => {
-    const size: Size = { width: 10, height: 15 }
-    const tiles: GridTiles = {} as GridTiles
-    // Not data
+describe('checkGridTiles', () => {
+  const size: Size = { width: 10, height: 15 }
+  const tiles: GridTiles = {} as GridTiles
+  test('No rows nor columns nor width, height', () => {
     tiles.rows = 0
     tiles.columns = 0
     tiles.width = 0
     tiles.height = 0
     expect(() => checkGridTiles(tiles, size)).toThrowError(SpliteaError)
-    // Just rows + columns -> width and height must be 0
+  })
+  test('Just rows + columns -> width and height must be 0', () => {
     tiles.rows = 1
     tiles.columns = 1
     tiles.width = 0
@@ -24,7 +24,8 @@ describe('Grid tiles', () => {
     tiles.width = 1
     tiles.height = 0
     expect(() => checkGridTiles(tiles, size)).toThrowError(SpliteaError)
-    // Just width + height -> rows and columns must be 0
+  })
+  test('Just width + height -> rows and columns must be 0', () => {
     tiles.rows = 1
     tiles.columns = 0
     tiles.width = 1
@@ -35,7 +36,8 @@ describe('Grid tiles', () => {
     tiles.width = 1
     tiles.height = 1
     expect(() => checkGridTiles(tiles, size)).toThrowError(SpliteaError)
-    // Just rows + columns -> must be submultiple of height + width
+  })
+  test('Just rows + columns -> must be submultiple of height + width', () => {
     tiles.rows = 3
     tiles.columns = 3
     tiles.width = 0
@@ -51,7 +53,8 @@ describe('Grid tiles', () => {
     tiles.width = 0
     tiles.height = 0
     expect(() => checkGridTiles(tiles, size)).not.toThrowError(SpliteaError)
-    // Just width + height -> must be submultiple of width + height
+  })
+  test('Just width + height -> must be submultiple of width + height', () => {
     tiles.rows = 0
     tiles.columns = 0
     tiles.width = 3

@@ -1,6 +1,6 @@
 import Jimp from "jimp"
 import { HorizontalTiles, Image, Size } from "../types"
-import { SpliteaError, throwError } from "../errors"
+import { SpliteaError, ThrowSpliteaError } from "../errors"
 import { getSplitImage } from "../image"
 import { isSubmultiple } from "../utils"
 
@@ -40,6 +40,6 @@ export const getHorizontalTiles = (image: Jimp, size: Size, tilesWidth: number, 
       return getSplitImage(image, x, y, w, h)
     })
   } catch (error) {
-    throw throwError(error, 'Problem with getting horizontal slices')
+    throw ThrowSpliteaError(error, 'Problem with getting horizontal slices')
   }
 }

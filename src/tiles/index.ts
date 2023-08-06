@@ -1,28 +1,28 @@
 import Jimp from "jimp"
-import { Image, Mode, ModeSchema, Size, Tiles, TilesSchema } from "../types"
-import { checkModeHorizontal, getHorizontalTiles } from "./horizontal"
-import { checkModeVertical, getVerticalTiles } from "./vertical"
-import { checkModeGrid, getGridTiles } from "./grid"
+import { GridTilesSchema, HorizontalTilesSchema, Image, Mode, ModeSchema, Size, Tiles, TilesSchema, VerticalTilesSchema } from "../types"
+import { checkHorizontalTiles, getHorizontalTiles } from "./horizontal"
+import { checkVerticalTiles, getVerticalTiles } from "./vertical"
+import { checkGridTiles, getGridTiles } from "./grid"
 import { SpliteaError } from "../errors"
 
 const checkMode = (mode: Mode) => ModeSchema.parse(mode)
 
 export const checkTiles = (tiles: Tiles, size: Size): void => {
-  const { mode, rows, columns, width, height } = TilesSchema.parse(tiles)
+  const { mode } = TilesSchema.parse(tiles)
   // Mode
   checkMode(mode)
   // Mode horizontal -> Columns || Width
-  if ( mode === 'horizontal') { checkModeHorizontal(columns, width, size) }
+  if (mode === 'horizontal') { checkHorizontalTiles(HorizontalTilesSchema.parse(tiles), size) }
   // Mode Vertical -> Rows || Height
-  else if (mode === 'vertical') { checkModeVertical(rows, height, size) }
+  else if (mode === 'vertical') { checkVerticalTiles(VerticalTilesSchema.parse(tiles), size) }
   // Mode Grid -> rows + columns || width + height
-  else if (mode === 'grid') { checkModeGrid(rows, columns, width, height, size) }
+  else if (mode === 'grid') { checkGridTiles(GridTilesSchema.parse(tiles), size) }
 }
 
 export const getTiles = (img: Jimp, size: Size, tiles: Tiles): Image[] => {
   if (tiles?.mode !== undefined) {
     let tmpSlices: Image[] = []
-    const  { width, height, columns, rows } = tiles
+    const { width, height, columns, rows } = tiles
     // Horizontal
     if (tiles.mode === 'horizontal') { tmpSlices = getHorizontalTiles(img, size, width, columns) }
     // Vertical
