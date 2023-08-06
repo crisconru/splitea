@@ -29,7 +29,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "jimp": "^0.22.10"
+    "jimp": "^0.22.10",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "ts-node-dev": "^2.0.0",
