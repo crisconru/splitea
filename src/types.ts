@@ -36,37 +36,41 @@ export const TilesSchema = z.object({
   unique: BooleanOptionalSchema,
 })
 export type Tiles = z.infer<typeof TilesSchema>
-// Modes Parser
+
 export const HorizontalTilesSchema = TilesSchema.pick({ columns: true, width: true })
 export type HorizontalTiles = z.infer<typeof HorizontalTilesSchema>
 export const VerticalTilesSchema = TilesSchema.pick({ rows: true, height: true })
 export type VerticalTiles = z.infer<typeof VerticalTilesSchema>
 export const GridTilesSchema = TilesSchema.omit({ mode: true, unique: true })
 export type GridTiles = z.infer<typeof GridTilesSchema>
-
-/**
- * 1. Data to return -> data => "buffer" | "path"
- * 2. If data = "path" or you want to store the slices it needs to provide path + name (extension is optional)
+/** Output --------------------------------------------------------------------
+ * 1. response = data to return -> data => "buffer" | "path"
+ * 2. If response = "path" or you want to store the slices it needs to provide path + name (extension is optional)
  * 2.1 Local path to store slices -> path
  * 2.2 Name preffix to slices -> name
  * 2.3 Extension to store tiles -> extension => "jpg" | "png" | "bmp" | "gif" | "tiff"
  **/
-export const DataSchema = z.enum(['buffer', 'path'])
-export type Data = z.infer<typeof DataSchema>
+export const ResponseSchema = z.enum(['buffer', 'path'])
+export type Data = z.infer<typeof ResponseSchema>
 
 export const ExtensionSchema = z.enum(['jpg', 'jpeg', 'png', 'bmp', 'gif', 'tiff'])
 export type Extension = z.infer<typeof ExtensionSchema>
 export const ExtensionOptionalSchema = ExtensionSchema.optional()
 export type ExtensionOptional = z.infer<typeof ExtensionOptionalSchema>
 
-export const OutputSchema = z.object({
-  data: DataSchema,
-  path: StringOptionalSchema,
-  name: StringOptionalSchema,
+export const StoreSchema = z.object({
+  path: StringSchema,
+  name: StringSchema,
   extension: ExtensionOptionalSchema
 })
-export type Output = z.infer<typeof OutputSchema>
+export type Store = z.infer<typeof StoreSchema>
 
+export const OutputSchema = z.object({
+  response: ResponseSchema.default('buffer'),
+  store: StoreSchema.optional()
+})
+export type Output = z.infer<typeof OutputSchema>
+// Other ----------------------------------------------------------------------
 export const SizeSchema = z.object({
   width: NaturalSchema.positive(),
   height: NaturalSchema.positive()
@@ -77,4 +81,6 @@ export const BufferSchema = z.instanceof(Buffer)
 
 export const JimpSchema = z.instanceof(Jimp)
 
-export type Image = z.infer<typeof BufferSchema>
+export const ImageSchema = z.union([StringSchema, BufferSchema])
+
+export type Image = z.infer<typeof ImageSchema>
