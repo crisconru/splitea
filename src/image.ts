@@ -1,9 +1,10 @@
 import Jimp from "jimp"
 import { SpliteaError, ThrowSpliteaError } from "./errors"
-import { Image, Size, SizeSchema } from "./types"
+import { Image, ImageSchema, Size, SizeSchema, TileCoordinates } from "./types"
 
 export const readImage = async (image: Image): Promise<[Jimp, Size]> => {
   try {
+    ImageSchema.parse(image)
     const img = await Jimp.read(image)
     const size: Size = SizeSchema.parse({ width: img.bitmap.width, height: img.bitmap.height })
     return [img, size]
@@ -12,9 +13,10 @@ export const readImage = async (image: Image): Promise<[Jimp, Size]> => {
   }
 }
 
-export const getSplitImage = (image: Jimp, x: number, y: number, w: number, h: number): Jimp => {
+const getSplitImage = (image: Jimp, tileCoordinates: TileCoordinates): Jimp => {
   try {
     const { width, height } = image.bitmap
+    const { x, y, width: w, height: h } = tileCoordinates
     if (x === 0 && w === width && y === 0 && h === height) return image
     if ((x + w) > width) throw new SpliteaError(`Can't have an image of ${w}x${h}px from (${x}, ${y}) because max x value is ${width - 1}`)
     if ((y + h) > height) throw new SpliteaError(`Can't have an image of ${w}x${h}px from (${x}, ${y}) because max y value is ${height - 1}`)
@@ -24,21 +26,11 @@ export const getSplitImage = (image: Jimp, x: number, y: number, w: number, h: n
   }
 }
 
-export const getUniqueImages = (imgs: Jimp[]): Jimp[] => {
-  // 0 or 1 image
-  if (imgs.length <= 1) return imgs
-  // Recursion
-  const unique = imgs[0]
-  const arr = imgs.slice(1).filter(elem => !areEqualImages(unique, elem))
-  return [unique, ...getUniqueImages(arr)]
+export const getSplitImages = (image: Jimp, tilesCoordinate: TileCoordinates[], unique: boolean = false): Jimp[] => {
+  const images = tilesCoordinate.map(tileCoordinates => getSplitImage(image, tileCoordinates))
+  if (unique && images.length > 1) { return getUniqueImages(images) }
+  return images
 }
-
-
-// const writeImage = (image: Jimp, path: string, name: string, index: number, extension: string): string => {
-//   const filename = `${name}_${index}_${new Date().getTime()}${extension}`
-//   image.write(filename)
-//   return filename
-// }
 
 export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
   try {
@@ -54,3 +46,21 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
   }
   return false
 }
+
+export const getUniqueImages = (images: Jimp[]): Jimp[] => {
+  let array = [...images ]
+  let image: Jimp
+  let uniqueArray: Jimp[] = []
+  while (array.length) {
+    image = array[0]
+    uniqueArray.push(image)
+    array = array.filter(elem => !areEqualImages(image, elem))
+  }
+  return uniqueArray
+}
+
+// const writeImage = (image: Jimp, path: string, name: string, index: number, extension: string): string => {
+//   const filename = `${name}_${index}_${new Date().getTime()}${extension}`
+//   image.write(filename)
+//   return filename
+// }
