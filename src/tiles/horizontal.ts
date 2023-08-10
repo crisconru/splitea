@@ -1,7 +1,5 @@
-import Jimp from "jimp"
-import { HorizontalTiles, Image, Size } from "../types"
+import { HorizontalTiles, Size, TileCoordinates, TileCoordinatesSchema } from "../types"
 import { SpliteaError, ThrowSpliteaError } from "../errors"
-import { getSplitImage } from "../image"
 import { isSubmultiple } from "../utils"
 
 export const checkHorizontalTiles = (tiles: HorizontalTiles, size: Size): void => {
@@ -25,9 +23,7 @@ export const checkHorizontalTiles = (tiles: HorizontalTiles, size: Size): void =
   }
 }
 
-export const getHorizontalTiles = (image: Jimp, size: Size, tilesWidth: number, tilesColumns: number): Image[] => {
-  if (tilesWidth === 0 && tilesColumns === 0) throw new SpliteaError('It needs to provide "columns" or "width"')
-  if (tilesWidth > 0 && tilesColumns > 0) throw new SpliteaError('It needs to provide "columns" or "width" but not both of them')
+export const getHorizontalTiles = (size: Size, tilesWidth: number, tilesColumns: number): TileCoordinates[] => {
   try {
     const { width, height } = size
     const [w, tilesNumber] = tilesWidth === 0
@@ -37,7 +33,7 @@ export const getHorizontalTiles = (image: Jimp, size: Size, tilesWidth: number, 
     const y = 0
     return new Array(tilesNumber).map((_, index) => {
       const x = w * index
-      return getSplitImage(image, x, y, w, h)
+      return TileCoordinatesSchema.parse({ x, y, width: w, height: h })
     })
   } catch (error) {
     throw ThrowSpliteaError(error, 'Problem with getting horizontal slices')

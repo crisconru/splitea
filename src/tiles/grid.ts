@@ -1,6 +1,4 @@
-import Jimp from "jimp"
-import { GridTiles, Image, Size } from "../types"
-import { getSplitImage } from "../image"
+import { GridTiles, Size, TileCoordinates, TileCoordinatesSchema } from "../types"
 import { SpliteaError, ThrowSpliteaError } from "../errors"
 import { isSubmultiple } from "../utils"
 
@@ -52,8 +50,7 @@ export const checkGridTiles = (tiles: GridTiles, size: Size): void => {
   }
 }
 
-export const getGridTiles = (image: Jimp, size: Size, tilesWidth: number, tilesHeight: number, tilesRows: number, tilesColumns: number): Image[] => {
-  validGridTiles(tilesWidth, tilesHeight, tilesRows, tilesColumns)
+export const getGridTiles = (size: Size, tilesWidth: number, tilesHeight: number, tilesRows: number, tilesColumns: number): TileCoordinates[] => {
   try {
     const { width, height } = size
     const [w, tilesNumberX] = tilesWidth === 0
@@ -68,7 +65,7 @@ export const getGridTiles = (image: Jimp, size: Size, tilesWidth: number, tilesH
       const x = w * indexX
       return arrayY.map((_y, indexY) => {
         const y = h * indexY
-        return getSplitImage(image, x, y, w, h)
+        return TileCoordinatesSchema.parse({ x, y, width: w, height: h })
       })
     }).flat()
   } catch (error) {

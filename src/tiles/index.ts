@@ -1,9 +1,14 @@
 import Jimp from "jimp"
-import { GridTilesSchema, HorizontalTilesSchema, Image, Mode, ModeSchema, Size, Tiles, TilesSchema, VerticalTilesSchema } from "../types"
+import {
+  HorizontalTilesSchema, VerticalTilesSchema, GridTilesSchema, 
+  Mode, ModeSchema,
+  Size,
+  Tiles, TilesSchema, TileCoordinates
+} from "../types"
 import { checkHorizontalTiles, getHorizontalTiles } from "./horizontal"
 import { checkVerticalTiles, getVerticalTiles } from "./vertical"
 import { checkGridTiles, getGridTiles } from "./grid"
-import { SpliteaError } from "../errors"
+import { getSplitImages } from "../image"
 
 const checkMode = (mode: Mode) => ModeSchema.parse(mode)
 
@@ -19,20 +24,19 @@ export const checkTiles = (tiles: Tiles, size: Size): void => {
   else if (mode === 'grid') { checkGridTiles(GridTilesSchema.parse(tiles), size) }
 }
 
-export const getTiles = (img: Jimp, size: Size, tiles: Tiles): Image[] => {
-  if (tiles?.mode !== undefined) {
-    let tmpSlices: Image[] = []
-    const { width, height, columns, rows } = tiles
-    // Horizontal
-    if (tiles.mode === 'horizontal') { tmpSlices = getHorizontalTiles(img, size, width, columns) }
-    // Vertical
-    if (tiles.mode === 'vertical') { tmpSlices = getVerticalTiles(img, size, height, rows) }
-    // Grid
-    if (tiles.mode === 'grid') { tmpSlices = getGridTiles(img, size, width, height, rows, columns) }
-    // Remove similars
-    if (tmpSlices.length > 0) return (tiles.unique) ? uniqueTiles(tmpSlices as Jimp[]) : tmpSlices
-    // Error
-    throw new SpliteaError('Invalid mode')
-  }
-  throw new SpliteaError('No mode defined')
+const getTilesByMode = (size: Size, tiles: Tiles): TileCoordinates[] => {
+  const { mode, width, height, columns, rows } = tiles
+  // Horizontal
+  if (mode === 'horizontal') { return getHorizontalTiles(size, width, columns) }
+  // Vertical
+  if (mode === 'vertical') { return getVerticalTiles(size, height, rows) }
+  // Grid
+  return getGridTiles(size, width, height, rows, columns)
+}
+
+export const getTiles = (img: Jimp, size: Size, tiles: Tiles): Jimp[] => {
+  // Get coordinates
+  const tilesCoordinates: TileCoordinates[] = getTilesByMode(size, tiles)
+  // Get images
+  return getSplitImages(img, tilesCoordinates, tiles.unique)
 }

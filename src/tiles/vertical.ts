@@ -1,7 +1,5 @@
-import Jimp from "jimp"
-import { Image, Size, VerticalTiles } from "../types"
+import { Size, TileCoordinates, TileCoordinatesSchema, VerticalTiles } from "../types"
 import { SpliteaError, ThrowSpliteaError } from "../errors"
-import { getSplitImage } from "../image"
 import { isSubmultiple } from "../utils"
 
 export const checkVerticalTiles = (tiles: VerticalTiles, size: Size): void => {
@@ -25,9 +23,7 @@ export const checkVerticalTiles = (tiles: VerticalTiles, size: Size): void => {
   }
 }
 
-export const getVerticalTiles = (image: Jimp, size: Size, tilesHeight: number, tilesRows: number): Image[] => {
-  if (tilesHeight === 0 && tilesRows === 0) throw new SpliteaError('It needs to provide "rows" or "heigth"')
-  if (tilesHeight > 0 && tilesRows > 0) throw new SpliteaError('It needs to provide "rows" or "heigth" but not both of them')
+export const getVerticalTiles = (size: Size, tilesHeight: number, tilesRows: number): TileCoordinates[] => {
   try {
     const { width, height } = size
     const w = width
@@ -37,7 +33,7 @@ export const getVerticalTiles = (image: Jimp, size: Size, tilesHeight: number, t
     const x = 0
     return new Array(tilesNumber).map((_, index) => {
       const y = h * index
-      return getSplitImage(image, x, y, w, h)
+      return TileCoordinatesSchema.parse({ x, y, width: w, height: h })
     })
   } catch (error) {
     throw ThrowSpliteaError(error, 'Problem with getting vertical slices')

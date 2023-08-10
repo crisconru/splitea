@@ -43,6 +43,14 @@ export const VerticalTilesSchema = TilesSchema.pick({ rows: true, height: true }
 export type VerticalTiles = z.infer<typeof VerticalTilesSchema>
 export const GridTilesSchema = TilesSchema.omit({ mode: true, unique: true })
 export type GridTiles = z.infer<typeof GridTilesSchema>
+
+export const TileCoordinatesSchema = z.object({
+  x: NaturalSchema,
+  y: NaturalSchema,
+  width: NaturalSchema,
+  height: NaturalSchema
+})
+export type TileCoordinates = z.infer<typeof TileCoordinatesSchema>
 /** Output --------------------------------------------------------------------
  * 1. response = data to return -> data => "buffer" | "path"
  * 2. If response = "path" or you want to store the slices it needs to provide path + name (extension is optional)
