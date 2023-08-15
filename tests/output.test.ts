@@ -1,16 +1,28 @@
 import fs from 'node:fs'
+import * as FsSync from 'node:fs/promises'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import { checkOutput } from '../src/output'
+import { checkOutput, getOutput } from '../src/output'
 import { SpliteaError } from '../src/errors'
 import { Output } from '../src/types'
+import { getImage } from '../src/image'
+
+const imgFolder = path.join(__dirname)
+
+const imgTest = {
+  img: path.join(imgFolder, 'forestmap.png'),
+  imgBad: path.join(imgFolder, 'forestmapp.png'),
+  width: 320,
+  height: 224,
+  imgSatie: path.join(imgFolder, 'Ericsatie.jpg')
+}
 
 describe('checkOutput - response "buffer"', () => {
   test('response buffer', () => {
     const output: Output = { response: 'buffer' }
     expect(() => checkOutput(output)).not.toThrowError()
     output.store = { path: 'as?..jhfla', name: '?>.fdsg/.' }
-    expect(() => checkOutput(output)).not.toThrowError()
+    expect(() => checkOutput(output)).toThrowError()
   })
 })
 
@@ -83,4 +95,38 @@ describe('checkOutput - response "path"', () => {
     expect(() => checkOutput(output)).not.toThrowError(SpliteaError)
   })
 
+})
+
+describe('getOutput', async () => {
+  const images = await Promise.all(
+    [await getImage(imgTest.img), await getImage(imgTest.imgSatie)]
+  ).then(response => [response[0][0], response[1][0]])
+  const output: Output = {
+    response: 'buffer'
+  }
+
+  test('response = "buffer", store = undefined', async () => {
+    const buffers = await getOutput(images, output)
+    expect(buffers).toHaveLength(2)
+    expect(buffers[0]).toBeInstanceOf(Buffer)
+  })
+
+  test('response = "buffer", store != undefined', async () => {
+    output.store = { path: __dirname, name: 'test'}
+    const buffers = await getOutput(images, output)
+    expect(buffers).toHaveLength(2)
+    expect(buffers[0]).toBeInstanceOf(Buffer)
+  })
+
+  test('response = "path", store != undefined', async () => {
+    output.response = 'path'
+    output.store = { path: __dirname, name: 'test'}
+    const paths = await getOutput(images, output)
+    expect(paths).toHaveLength(2)
+    console.log( paths[0] instanceof String)
+    expect(typeof paths[0]).toEqual('string')
+    await Promise.all(
+      paths.map(async (path) => await FsSync.rm(path))
+    )
+  })
 })

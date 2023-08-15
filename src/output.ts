@@ -1,6 +1,8 @@
 import { existsSync, accessSync, constants } from 'node:fs'
 import { SpliteaError, ThrowSpliteaError } from "./errors"
-import { Output, OutputSchema, StoreSchema } from "./types"
+import { ExtensionSchema, Image, Output, OutputSchema, StoreSchema } from "./types"
+import Jimp from 'jimp'
+import { getBufferImages, writeImages } from './image'
 
 const checkPath = (path: string): void => {
   // Check if path exist
@@ -36,9 +38,25 @@ const checkName = (name: string): void => {
 
 export const checkOutput = (output: Output): void => {
   const { response, store } = OutputSchema.parse(output)
-  if (response === 'path') {
+  if (response === 'path' || store !== undefined) {
     const { path, name } = StoreSchema.parse(store)
     checkPath(path)
     checkName(name)
   }
+}
+
+export const getOutput = async (images: Jimp[], output: Output): Promise<Image[]> => {
+  if (images.length === 0) return []
+  const { response, store } = output
+  // Storage if neccessary
+  if (store) {
+    const { path, name, extension: ext } = store
+    const extension = ext ?? ExtensionSchema.parse(images[0].getExtension())
+    const paths = await writeImages(images, path, name, extension)
+    // Response are paths
+    if (response === 'path') return paths
+  }
+  // Luego devolver si es buffer o path
+  const buffers =await getBufferImages(images)
+  return buffers
 }
