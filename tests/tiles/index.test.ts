@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import { areEqualImages, getUniqueImages, readImage } from '../../src/image'
+import { getImage } from '../../src/image'
 import { getTiles } from '../../src/tiles'
 import { Tiles } from '../../src/types'
 const imgFolder = path.join(__dirname, '..')
@@ -24,7 +24,7 @@ const tilesTestVertical: Tiles = { ...tilesTest, mode: 'vertical' }
 
 describe('Get Horizontal Tiles', () => {
   test('Providing width', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTestHorizontal }
     tiles.width = 1
     expect(getTiles(img, size, tiles).length).toBe(size.width)
@@ -35,7 +35,7 @@ describe('Get Horizontal Tiles', () => {
   })
 
   test('Providing columns', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTestHorizontal }
     tiles.columns = 1
     expect(getTiles(img, size, tiles).length).toBe(tiles.columns)
@@ -48,7 +48,7 @@ describe('Get Horizontal Tiles', () => {
 
 describe('Get Vertical Tiles', () => {
   test('Providing height', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTestVertical }
     tiles.height = 1
     expect(getTiles(img, size, tiles).length).toBe(size.height)
@@ -59,7 +59,7 @@ describe('Get Vertical Tiles', () => {
   })
 
   test('Providing rows', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTestVertical }
     tiles.rows = 1
     expect(getTiles(img, size, tiles).length).toBe(tiles.rows)
@@ -72,7 +72,7 @@ describe('Get Vertical Tiles', () => {
 
 describe('Get Grid Tiles', () => {
   test('Providing width-height', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTest }
     tiles.width = size.width
     tiles.height = size.height
@@ -93,7 +93,7 @@ describe('Get Grid Tiles', () => {
   })
 
   test('Providing rows-columns', async () => {
-    const [img, size] = await readImage(imgTest.img)
+    const [img, size] = await getImage(imgTest.img)
     const tiles: Tiles = { ...tilesTest }
     tiles.rows = 1
     tiles.columns = 1
