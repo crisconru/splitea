@@ -1,8 +1,9 @@
+import * as Path from 'node:path'
 import Jimp from "jimp"
 import { SpliteaError, ThrowSpliteaError } from "./errors"
 import { Image, ImageSchema, Size, SizeSchema, TileCoordinates } from "./types"
 
-export const readImage = async (image: Image): Promise<[Jimp, Size]> => {
+export const getImage = async (image: Image): Promise<[Jimp, Size]> => {
   try {
     ImageSchema.parse(image)
     const img = await Jimp.read(image)
@@ -37,7 +38,7 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
     const distance = Jimp.distance(img1, img2)
     const diff = Jimp.diff(img1, img2)
     if (distance < 0.15 && diff.percent < 0.15) {
-      console.log(`distance = ${distance} | diff = ${diff.percent}`)
+      console.debug(`distance = ${distance} | diff = ${diff.percent}`)
       return true
     }
   } catch (error) {
@@ -48,7 +49,7 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
 }
 
 export const getUniqueImages = (images: Jimp[]): Jimp[] => {
-  let array = [...images ]
+  let array = [...images]
   let image: Jimp
   let uniqueArray: Jimp[] = []
   while (array.length) {
@@ -59,8 +60,32 @@ export const getUniqueImages = (images: Jimp[]): Jimp[] => {
   return uniqueArray
 }
 
-// const writeImage = (image: Jimp, path: string, name: string, index: number, extension: string): string => {
-//   const filename = `${name}_${index}_${new Date().getTime()}${extension}`
-//   image.write(filename)
-//   return filename
-// }
+const writeImage = async (image: Jimp, path: string, name: string, index: number | string, extension: string): Promise<string> => {
+  const filename = `${name}_${index}_${new Date().getTime()}.${extension}`
+  const file = Path.join(path, filename)
+  await image.writeAsync(file)
+  return file
+}
+
+export const writeImages = async (images: Jimp[], path: string, name: string, extension: string): Promise<string[]> => {
+  if (images.length < 1) throw new SpliteaError('Impossible to write no images')
+  if (images.length === 1) {
+    const filenames = await writeImage(images[0], path, name, '', extension)
+    return [filenames]
+  }
+  return Promise.all(
+    images.map(
+      async (image: Jimp, index: number) => await writeImage(image, path, name, index, extension)
+    )
+  )
+}
+
+export const getBufferImages = async (images: Jimp[]): Promise<Buffer[]> => {
+  try {
+    const buffers = await Promise.all(images.map(async (image: Jimp) => await image.getBufferAsync(image.getMIME())))
+    return buffers
+  } catch (error) {
+    ThrowSpliteaError(error, 'Impossible to get buffer from images')
+  }
+  return Promise.resolve([])
+}
