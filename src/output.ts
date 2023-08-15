@@ -1,14 +1,16 @@
-import { existsSync, accessSync, constants } from 'node:fs'
+import { existsSync, accessSync, constants, mkdirSync } from 'node:fs'
 import { SpliteaError, ThrowSpliteaError } from "./errors"
 import { ExtensionSchema, Image, Output, OutputSchema, StoreSchema } from "./types"
 import Jimp from 'jimp'
 import { getBufferImages, writeImages } from './image'
 
 const checkPath = (path: string): void => {
-  // Check if path exist
-  if (!existsSync(path)) { throw new SpliteaError(`Not exists path ${path}`) }
-  // Check if can write
   try {
+    // Check if path not exist, create
+    if (!existsSync(path)) {
+      mkdirSync(path)
+    }
+    // Check if can write
     accessSync(path, constants.W_OK)
   } catch (err) {
     throw ThrowSpliteaError(err, `Problems parsing path ${path}`)
