@@ -19,6 +19,6 @@ export const getOutput = async (images: Jimp[], output: Output): Promise<Image[]
     if (response === 'path') return paths
   }
   // Luego devolver si es buffer o path
-  const buffers =await getBufferImages(images)
+  const buffers = await getBufferImages(images)
   return buffers
 }
