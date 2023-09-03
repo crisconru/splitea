@@ -1,4 +1,4 @@
-import { rmdirSync } from 'node:fs'
+import { rmdirSync, existsSync } from 'node:fs'
 import { describe, test, expect } from 'vitest'
 import {
   Size, SizeSchema,
@@ -213,19 +213,14 @@ describe('Output', () => {
     expect(result.success).toBeTruthy()
     expect(result.data.response).toStrictEqual('buffer')
     // Add store
-    output.store = {
-      path: './',
-      name: 'store'
-    }
+    output.store = { path: './', name: 'store' }
     result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
 
     output.store.path = 'storeTest'
     result = OutputSchema.safeParse(output)
+    rmdirSync(output.store.path, { recursive: true })
     expect(result.success).toBeTruthy()
-
-    // Delete folder
-    rmdirSync(output.store.path)
   })
 
   test('Response path', () => {
@@ -234,18 +229,14 @@ describe('Output', () => {
     let result = OutputSchema.safeParse(output)
     expect(result.success).toBeFalsy()
     // Response = path + Store
-    output.store = {
-      path: './',
-      name: 'store'
-    }
+    output.store = { path: './', name: 'store' }
     result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
 
     output.store.path = 'storeTest'
     result = OutputSchema.safeParse(output)
-    expect(result.success).toBeTruthy()
-    // Delete folder
     rmdirSync(output.store.path)
+    expect(result.success).toBeTruthy()
   })
 
   test('Invalid paths - filenames', () => {
@@ -268,6 +259,9 @@ describe('Output', () => {
       store.path = pattern
       output = { response, store }
       result = OutputSchema.safeParse(output)
+      if (existsSync(store.path)) {
+        rmdirSync(store.path, {recursive: true})
+      }
       expect(result.success).toBeFalsy()
     })
   })
@@ -278,7 +272,7 @@ describe('Output', () => {
     let output = OutputSchema.parse({ response, store })
     let result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
-    rmdirSync(store.path)
+    rmdirSync(store.path, { recursive: true })
     // Valid filenames
     const validFiles = ['foo-bar', 'hola.txt']
     validFiles.forEach(pattern => {
@@ -286,8 +280,8 @@ describe('Output', () => {
       output = { response, store }
       result = OutputSchema.safeParse(output)
       expect(result.success).toBeTruthy()
-      // rmdirSync(store.name)
     })
+    rmdirSync(store.path)
     // Valid filenames
     const validPaths = ['foo-bar', 'helloWorld']
     validPaths.forEach(pattern => {
@@ -295,7 +289,7 @@ describe('Output', () => {
       output = { response, store }
       result = OutputSchema.safeParse(output)
       expect(result.success).toBeTruthy()
-      rmdirSync(store.path)
+      rmdirSync(store.path, {recursive: true})
     })
   })
 })
