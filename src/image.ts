@@ -1,22 +1,25 @@
 import * as Path from 'node:path'
 import Jimp from "jimp"
 import { SpliteaError, ThrowSpliteaError } from "./errors"
-import { Image, ImageSchema, Size, SizeSchema, TileCoordinates } from "./types"
+import { Image, ImageSchema, Size, SizeSchema, TileCoordinates, Unique } from "./types"
+
+export const getSize = (image: Jimp): Size => SizeSchema.parse({ width: image.bitmap.width, height: image.bitmap.height})
 
 export const getImage = async (image: Image): Promise<[Jimp, Size]> => {
   try {
     ImageSchema.parse(image)
+    // @ts-ignore
     const img = await Jimp.read(image)
-    const size: Size = SizeSchema.parse({ width: img.bitmap.width, height: img.bitmap.height })
+    const size: Size = getSize(img)
     return [img, size]
   } catch (error) {
     throw ThrowSpliteaError(error, `Error reading image ${image}`)
   }
 }
 
-const getSplitImage = (image: Jimp, tileCoordinates: TileCoordinates): Jimp => {
+const getSplitImage = (image: Jimp, size: Size, tileCoordinates: TileCoordinates): Jimp => {
   try {
-    const { width, height } = image.bitmap
+    const { width, height } = size
     const { x, y, width: w, height: h } = tileCoordinates
     if (x === 0 && w === width && y === 0 && h === height) return image
     if ((x + w) > width) throw new SpliteaError(`Can't have an image of ${w}x${h}px from (${x}, ${y}) because max x value is ${width - 1}`)
@@ -27,20 +30,14 @@ const getSplitImage = (image: Jimp, tileCoordinates: TileCoordinates): Jimp => {
   }
 }
 
-export const getSplitImages = (image: Jimp, tilesCoordinate: TileCoordinates[], unique: boolean = false): Jimp[] => {
-  const images = tilesCoordinate.map(tileCoordinates => getSplitImage(image, tileCoordinates))
-  if (unique && images.length > 1) { return getUniqueImages(images) }
-  return images
-}
-
-export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
+export const areEqualImages = (img1: Jimp, img2: Jimp, unique: Unique): boolean => {
+  const { requirement, distance, difference } = unique
   try {
-    const distance = Jimp.distance(img1, img2)
-    const diff = Jimp.diff(img1, img2)
-    if (distance < 0.15 && diff.percent < 0.15) {
-      console.debug(`distance = ${distance} | diff = ${diff.percent}`)
-      return true
-    }
+    const dist = Jimp.distance(img1, img2)
+    const diff = Jimp.diff(img1, img2).percent
+    return ( requirement === 'both')
+      ? (dist < distance && diff < difference)
+      : (dist < distance || diff < difference)
   } catch (error) {
     console.log(error)
     ThrowSpliteaError(error, 'Error comparing images')
@@ -48,20 +45,27 @@ export const areEqualImages = (img1: Jimp, img2: Jimp): boolean => {
   return false
 }
 
-export const getUniqueImages = (images: Jimp[]): Jimp[] => {
+export const getUniqueImages = (images: Jimp[], unique: Unique): Jimp[] => {
+  if (images.length < 2) return images
   let array = [...images]
-  let image: Jimp
-  let uniqueArray: Jimp[] = []
-  while (array.length) {
-    image = array[0]
-    uniqueArray.push(image)
-    array = array.filter(elem => !areEqualImages(image, elem))
-  }
-  return uniqueArray
+  let uniques: Jimp[] = []
+  do {
+    console.log(`Array length ${array.length}`)
+    const image: Jimp = array.shift() as Jimp
+    uniques.push(image)
+    array = array.filter(elem => !areEqualImages(image, elem, unique))
+  } while (array.length > 0) 
+  return uniques
+}
+
+export const getSplitImages = (image: Jimp, size: Size, tilesCoordinate: TileCoordinates[], unique: Unique): Jimp[] => {
+  const images = tilesCoordinate.map(tileCoordinates => getSplitImage(image, size, tileCoordinates))
+  if (unique.enable && images.length > 1) { return getUniqueImages(images, unique) }
+  return images
 }
 
 const writeImage = async (image: Jimp, path: string, name: string, index: number | string, extension: string): Promise<string> => {
-  const filename = `${name}_${index}_${new Date().getTime()}.${extension}`
+  const filename = `${name}_${(index).toString().padStart(3, '0')}.${extension}`
   const file = Path.join(path, filename)
   await image.writeAsync(file)
   return file
