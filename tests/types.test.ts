@@ -199,15 +199,39 @@ describe('Tiles Cut', () => {
 })
 
 describe('Output', () => {
-  test('test Output', () => {
+  test('Response empty', () => {
     const output: Output = {} as Output
     // Empty => buffer response
     let result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
     expect(result.data.response).toStrictEqual('buffer')
-    // Response = path No store
-    output.response = 'path'
+  })
+
+  test('Response buffer', () => {
+    const output: Output = { response: 'buffer'} as Output
+    let result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    expect(result.data.response).toStrictEqual('buffer')
+    // Add store
+    output.store = {
+      path: './',
+      name: 'store'
+    }
     result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+
+    output.store.path = 'storeTest'
+    result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+
+    // Delete folder
+    rmdirSync(output.store.path)
+  })
+
+  test('Response path', () => {
+    const output: Output = { response: 'path' } as Output
+    // Response = path No store
+    let result = OutputSchema.safeParse(output)
     expect(result.success).toBeFalsy()
     // Response = path + Store
     output.store = {
@@ -216,15 +240,62 @@ describe('Output', () => {
     }
     result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
-    output.store.path = 'store'
-    result = OutputSchema.safeParse(output)
-    expect(result.success).toBeTruthy()
-    // Response = buffer + Store
-    output.response = 'buffer'
+
+    output.store.path = 'storeTest'
     result = OutputSchema.safeParse(output)
     expect(result.success).toBeTruthy()
     // Delete folder
     rmdirSync(output.store.path)
+  })
 
+  test('Invalid paths - filenames', () => {
+    const response = 'path'
+    const store = { path: './', name: 'storeTest' }
+    let output = OutputSchema.parse({ response, store })
+    let result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    // Invalid filenames
+    const invalidFiles = ['foo/bar', 'foo\u0000bar', 'foo\u001Fbar', 'foo*bar', 'foo:bar', 'AUX', 'com1', 'foo\\bar']
+    invalidFiles.forEach(pattern => {
+      store.name = pattern
+      output = { response, store }
+      result = OutputSchema.safeParse(output)
+      expect(result.success).toBeFalsy()
+    })
+    // Invalid paths
+    const invalidPaths = ['foo/bar', 'foo\u0000bar', 'foo\u001Fbar', 'foo*bar', 'foo:bar', 'AUX', 'com1', 'foo\\bar']
+    invalidPaths.forEach(pattern => {
+      store.path = pattern
+      output = { response, store }
+      result = OutputSchema.safeParse(output)
+      expect(result.success).toBeFalsy()
+    })
+  })
+
+  test('Valid paths - filenames', () => {
+    const response = 'path'
+    const store = { path: 'storePath', name: 'storeFile' }
+    let output = OutputSchema.parse({ response, store })
+    let result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    rmdirSync(store.path)
+    // Valid filenames
+    const validFiles = ['foo-bar', 'hola.txt']
+    validFiles.forEach(pattern => {
+      store.name = pattern
+      output = { response, store }
+      result = OutputSchema.safeParse(output)
+      expect(result.success).toBeTruthy()
+      // rmdirSync(store.name)
+    })
+    // Valid filenames
+    const validPaths = ['foo-bar', 'helloWorld']
+    validPaths.forEach(pattern => {
+      store.path = pattern
+      output = { response, store }
+      result = OutputSchema.safeParse(output)
+      expect(result.success).toBeTruthy()
+      rmdirSync(store.path)
+    })
   })
 })

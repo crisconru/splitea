@@ -240,6 +240,13 @@ export const PathSchema = z.string().superRefine((path, ctx) => {
   try {
     // If path does not exist, create it
     if (!existsSync(path)) {
+      // Invalid filename for the folder
+      if (invalidFilename(path)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid name for a path -> ${path}`,
+        })
+      }
       mkdirSync(path)
     }
     // Check write permissions
@@ -289,7 +296,13 @@ export const OutputSchema = z.object({
     })
   }
   if (store !== undefined) {
-    StoreSchema.parse(store)
+    const result = StoreSchema.safeParse(store)
+    if (!result.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${result.error}`
+      })
+    }
   }
 })
 export type Output = z.infer<typeof OutputSchema>
