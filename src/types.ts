@@ -1,8 +1,8 @@
-
+import { existsSync, mkdirSync, accessSync, constants } from 'node:fs'
 import Jimp from 'jimp'
 import { z } from 'zod'
 import { MIN_DIFFERENCE, MIN_DISTANCE } from './constants'
-import { isSubmultiple } from './utils'
+import { invalidFilename, isSubmultiple } from './utils'
 
 export const BooleanSchema = z.boolean()
 export type Boolean = z.infer<typeof BooleanSchema>
@@ -183,6 +183,42 @@ export const GridTilesSchema = TilesSchema
   })
 export type GridTiles = z.infer<typeof GridTilesSchema>
 
+export const TilesCutSchema = z.object({
+  tileWidth: NaturalSchema,
+  tileHeight: NaturalSchema,
+  imageWidth: NaturalSchema,
+  imageHeight: NaturalSchema,
+}).superRefine((val, ctx) => {
+  const { tileWidth, tileHeight, imageWidth, imageHeight } = val
+  // width
+  if (tileWidth > imageWidth) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `tile width ${tileWidth} cannot be bigger than image width ${imageWidth}`
+    })
+  }
+  if (!NaturalSchema.multipleOf(tileWidth).safeParse(imageWidth).success) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `tile width ${tileWidth} has to be a submultiple of image width ${imageWidth}`
+    })
+  }
+  // height
+  if (tileHeight > imageHeight) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `tile height ${tileHeight} cannot be bigger than image height ${imageHeight}`
+    })
+  }
+  if (!NaturalSchema.multipleOf(tileHeight).safeParse(imageHeight).success) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `tile height ${tileHeight} has to be a submultiple of image height ${imageHeight}`
+    })
+  }
+})
+export type TilesCut = z.infer<typeof TilesCutSchema>
+
 export const TileCoordinatesSchema = z.object({
   x: NaturalSchema,
   y: NaturalSchema,
@@ -197,23 +233,63 @@ export type TileCoordinates = z.infer<typeof TileCoordinatesSchema>
  * 2.2 Name preffix to slices -> name
  * 2.3 Extension to store tiles -> extension => "jpg" | "png" | "bmp" | "gif" | "tiff"
  **/
-export const ResponseSchema = z.enum(['buffer', 'path'])
-export type Data = z.infer<typeof ResponseSchema>
+export const ResponseSchema = z.union([z.literal('buffer'), z.literal('path')])
+export type Response = z.infer<typeof ResponseSchema>
 
-export const ExtensionSchema = z.enum(['jpg', 'jpeg', 'png', 'bmp', 'gif', 'tiff'])
+export const PathSchema = z.string().superRefine((path, ctx) => {
+  try {
+    // If path does not exist, create it
+    if (!existsSync(path)) {
+      mkdirSync(path)
+    }
+    // Check write permissions
+    accessSync(path, constants.W_OK)
+  } catch (err) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Problems with path = "${path}"`
+    })
+  }
+})
+export type Path = z.infer<typeof PathSchema>
+
+export const FilenameSchema = z.string().superRefine((filename, ctx) => {
+  if (invalidFilename(filename)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Invalid filename -> ${filename}`
+    })
+  }
+})
+export type Filename = z.infer<typeof FilenameSchema>
+
+export const ExtensionSchema = z.union([
+  z.literal('jpg'), z.literal('jpeg'),
+  z.literal('png'), z.literal('bmp'),
+  z.literal('gif'), z.literal('tiff')
+])
 export type Extension = z.infer<typeof ExtensionSchema>
-export const ExtensionOptionalSchema = ExtensionSchema.optional()
-export type ExtensionOptional = z.infer<typeof ExtensionOptionalSchema>
 
 export const StoreSchema = z.object({
-  path: StringSchema,
-  name: StringSchema,
-  extension: ExtensionOptionalSchema
+  path: PathSchema,
+  name: FilenameSchema,
+  extension: ExtensionSchema.optional()
 })
 export type Store = z.infer<typeof StoreSchema>
 
 export const OutputSchema = z.object({
   response: ResponseSchema.default('buffer'),
   store: StoreSchema.optional()
+}).superRefine((val, ctx) => {
+  const { response, store } = val
+  if (response === 'path' && store === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'To response with path, store argument has to be passed'
+    })
+  }
+  if (store !== undefined) {
+    StoreSchema.parse(store)
+  }
 })
 export type Output = z.infer<typeof OutputSchema>

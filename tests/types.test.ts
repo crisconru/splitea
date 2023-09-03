@@ -1,3 +1,4 @@
+import { rmdirSync } from 'node:fs'
 import { describe, test, expect } from 'vitest'
 import {
   Size, SizeSchema,
@@ -5,6 +6,8 @@ import {
   HorizontalTiles, HorizontalTilesSchema,
   VerticalTiles, VerticalTilesSchema,
   GridTiles, GridTilesSchema,
+  Output, OutputSchema,
+  TilesCut, TilesCutSchema,
 } from '../src/types'
 import { MIN_DIFFERENCE, MIN_DISTANCE } from '../src/constants'
 
@@ -161,5 +164,67 @@ describe('Tiles', () => {
     grid.columns = 1
     result = GridTilesSchema.safeParse(grid)
     expect(result.success).toBeFalsy() 
+  })
+})
+
+describe('Tiles Cut', () => {
+  test('test Tiles Cut', () => {
+    const tilesCut: TilesCut = {} as TilesCut
+    // Empty
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    tilesCut.imageWidth = 20
+    tilesCut.imageHeight = 30
+    tilesCut.tileWidth = 2
+    tilesCut.tileHeight = 3
+    // Correct
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeTruthy()
+    // Bigger than limits
+    tilesCut.tileWidth = tilesCut.imageWidth + 1
+    tilesCut.tileHeight = 10
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    tilesCut.tileWidth = 10
+    tilesCut.tileHeight = tilesCut.imageHeight + 1
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    // Not submultiples
+    tilesCut.tileWidth = 0
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    tilesCut.tileWidth = 3
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    tilesCut.tileWidth = 10
+    tilesCut.tileHeight = 0
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+    tilesCut.tileHeight = 9
+    expect(TilesCutSchema.safeParse(tilesCut).success).toBeFalsy()
+  })
+})
+
+describe('Output', () => {
+  test('test Output', () => {
+    const output: Output = {} as Output
+    // Empty => buffer response
+    let result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    expect(result.data.response).toStrictEqual('buffer')
+    // Response = path No store
+    output.response = 'path'
+    result = OutputSchema.safeParse(output)
+    expect(result.success).toBeFalsy()
+    // Response = path + Store
+    output.store = {
+      path: './',
+      name: 'store'
+    }
+    result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    output.store.path = 'store'
+    result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    // Response = buffer + Store
+    output.response = 'buffer'
+    result = OutputSchema.safeParse(output)
+    expect(result.success).toBeTruthy()
+    // Delete folder
+    rmdirSync(output.store.path)
+
   })
 })
