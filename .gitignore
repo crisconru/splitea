@@ -2,7 +2,7 @@
 .vscode
 .idea
 .DS_Store
-lib
+lib/
 
 # Logs
 logs
