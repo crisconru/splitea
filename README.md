@@ -2,28 +2,64 @@
 
 [![Node.js CI](https://github.com/crisconru/splitea/actions/workflows/node.js.yml/badge.svg)](https://github.com/crisconru/splitea/actions/workflows/node.js.yml)
 
-Is a tool to split images. The code is based on [image-splitter](https://github.com/achimoraites/image-splitter) code.
+It is a tool to split images into tiles or pieces. The idea is based on the project [image-splitter](https://github.com/achimoraites/image-splitter).
 
-The idea is that you tell to the lib what source image to use and:
+It has just one entry point with three arguments and the response is an array of tiles:
 
-- N images per row and M images per colum -> You get image splitted into N x M images.
-- N px per row and M px per colum -> You get image splitted into images with N x M px.
+- `image`: The image to split. It is a string path or a buffer
+- `tiles`: All the information to create the tiles
+    - `mode`: How to cut the images
+    - `rows` / `height`: Number of rows to be cut or height in px of each tile
+    - `columns` / `width`: Number of columns to be cut or width in px of each tile
+    - `unique`: Options to specify if you just want tiles not repeated
+        - `distance`: Max distance between tiles to be filtered
+        - `difference`: Max difference between tiles to be filtered
+        - `requirement`: Condition to be filtered, one of them or both
+- `output`: Information for the created tiles
+    - `response`: Type of output, an array of Buffer (default) or the path of each tile
+    - `store`: Information if you want to store the tiles in the computer or not
+        - `path`: Where to store
+        - `name`: Filename pattern
+        - `extension`: Extension of the tiles
 
-Then you tell if you want to store them and how to return data.
+For the tiles there are only these possible combinations:
 
-Inputs are two arguments:
+- `mode` = `"horizontal"` + (`columns` | `width`)
+- `mode` = `"vertical"` + (`rows` | `height`)
+- `mode` = `"grid"` + (`columns` + `rows` | `width` + `height`)
 
-1. `image` -> Source image => `String` (local file or url) | `Buffer` | `Jimp Object`
-2. `options` -> JSON with next properties:
-   1. `mode` -> Split mode => `grid` (by default) | `vertical` | `horizontal`
-   2. `tiles` -> JSON with properties related to the slices or commonly known as tiles
-      1. `rows` -> Number of rows
-      2. `columns` -> Number of columns
-      3. `width` -> Width in pixels per tile
-      4. `height` -> Height in pixels per tile
-      5. `unique` -> If you need all tiles or non-repeated => `false` (all tiles by default) | `true` (non-repeated tiles)
-   3. `output` -> JSON with properties related to the output / return data and how store it
-      1. `data` -> Type of data to be returned => `buffer` (default) | `path` (local path)
-      2. `path` -> Local path to save the tiles
-      3. `name` -> Preffix name to save the tiles
-      4. `extension` -> Supported extension to save tiles => `jpg` | `png` | `bmp` | `gif` | `tiff`
+`columns` and `rows` are natural number while `width` and `height` are in pixels.
+
+For the output the default type is buffer and it is not stored. If you want to store the tiles in the computer you'll have to add store object.
+
+If you select response as `"path"` you have to add store object too.
+
+```typecript
+import { Splitea } from splitea
+
+type Image = string | Buffer
+
+type Tiles = {
+  mode: "horizontal" | "vertical" | "grid",
+  rows?: number,
+  columns?: number,
+  width?: number,
+  height?: number,
+  unique?: {
+    distance: number,
+    difference: number,
+    requirement: "one" | "both"
+  }
+}
+
+type Output = {
+  response: "buffer" | "path",
+  store?: {
+    path: string,
+    name: string,
+    extension?: "jpg" | "jpeg" | "png" | "bmp" | "gif" | "tiff"
+  }
+}
+
+const tiles: Promise<Image[]> = await Splitea(image: Image, tiles: Tiles, output: Output)
+```
