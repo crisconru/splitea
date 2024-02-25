@@ -1,15 +1,17 @@
 import * as Path from 'node:path'
+import * as v from 'valibot'
 import Jimp from "jimp"
 import { SpliteaError, ThrowSpliteaError } from "./errors"
-import { Image, ImageSchema, Size, SizeSchema, TileCoordinates, Unique } from "./types"
+import { Image, Size, TileCoordinates, Unique } from "./types"
+import { ImageSchema, SizeSchema } from './schemas'
 
-export const getSize = (image: Jimp): Size => SizeSchema.parse({ width: image.bitmap.width, height: image.bitmap.height})
+export const getSize = (image: Jimp): Size => v.parse(SizeSchema, { width: image.bitmap.width, height: image.bitmap.height})
 
 export const getImage = async (image: Image): Promise<[Jimp, Size]> => {
   try {
-    ImageSchema.parse(image)
+    const i = v.parse(ImageSchema, image)
     // @ts-ignore
-    const img = await Jimp.read(image)
+    const img = await Jimp.read(i)
     const size: Size = getSize(img)
     return [img, size]
   } catch (error) {
@@ -50,7 +52,6 @@ export const getUniqueImages = (images: Jimp[], unique: Unique): Jimp[] => {
   let array = [...images]
   let uniques: Jimp[] = []
   do {
-    console.log(`Array length ${array.length}`)
     const image: Jimp = array.shift() as Jimp
     uniques.push(image)
     array = array.filter(elem => !areEqualImages(image, elem, unique))
