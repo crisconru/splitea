@@ -1,6 +1,6 @@
 # splitea
 
-[![Node.js CI](https://github.com/crisconru/splitea/actions/workflows/node.js.yml/badge.svg)](https://github.com/crisconru/splitea/actions/workflows/node.js.yml)
+[![build](https://github.com/crisconru/splitea/actions/workflows/publish.yml/badge.svg)](https://github.com/crisconru/splitea/actions/workflows/publish.yml)
 
 It is a tool to split images into tiles or pieces. The idea is based on the project [image-splitter](https://github.com/achimoraites/image-splitter).
 
@@ -34,7 +34,7 @@ For the output the default type is buffer and it is not stored. If you want to s
 
 If you select response as `"path"` you have to add store object too.
 
-```typecript
+```typescript
 import { Splitea } from splitea
 
 type Image = string | Buffer
