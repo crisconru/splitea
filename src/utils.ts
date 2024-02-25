@@ -13,7 +13,7 @@ export const invalidWindowsFilename = (name: string): boolean => {
   const windowsReservedNameRegex = /^(con|prn|aux|nul|com\d|lpt\d)$/
   const invalidWindowsFilename = new RegExp(windowsReservedNameRegex, 'i')
   const result = invalidWindowsFilename.test(name)
-  if (result) console.error(`Invalid windows filename ${name}`)
+  if (result) console.error(`Invalid windows filename "${name}"`)
   return result
 }
 
@@ -22,7 +22,7 @@ export const invalidUnixFilename = (name: string): boolean => {
   const filenameReservedRegex = /[<>:"/\\|?*\u0000-\u001F]/
   const invalidFilename = new RegExp(filenameReservedRegex, 'g')
   const result = invalidFilename.test(name)
-  if (result) console.error(`Invalid unix filename ${name}`)
+  if (result) console.error(`Invalid unix filename "${name}"`)
   return result
 }
 
