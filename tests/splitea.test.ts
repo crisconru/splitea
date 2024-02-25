@@ -50,7 +50,7 @@ describe('Splitea Grid', () => {
       expect(() => fs.stat(img)).not.toThrowError()
       // await fs.rm(img)
     }))
-    await fs.rmdir(store.path, {recursive: true})
+    await fs.rm(store.path, {recursive: true})
   })
 
   test('chess grid unique', async () => {
@@ -61,7 +61,7 @@ describe('Splitea Grid', () => {
       expect(() => fs.stat(img)).not.toThrowError()
       await fs.rm(img)
     }))
-    await fs.rmdir(store.path, {recursive: true})
+    await fs.rm(store.path, {recursive: true})
   }, 100000)
 
   test('chess grid unique tunning requirement', async () => {
@@ -76,7 +76,7 @@ describe('Splitea Grid', () => {
       expect(() => fs.stat(img)).not.toThrowError()
       await fs.rm(img)
     }))
-    await fs.rmdir(store.path, {recursive: true})
+    await fs.rm(store.path, {recursive: true})
 
     tiles.unique.requirement = 'one'
     imgs = await Splitea(image, tiles, output)
@@ -85,6 +85,6 @@ describe('Splitea Grid', () => {
       expect(() => fs.stat(img)).not.toThrowError()
       await fs.rm(img)
     }))
-    await fs.rmdir(store.path, {recursive: true})
+    await fs.rm(store.path, {recursive: true})
   }, 100000)
 })
