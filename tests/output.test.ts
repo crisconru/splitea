@@ -1,9 +1,11 @@
 import { rmSync } from 'node:fs'
 import path from 'node:path'
+import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { getOutput } from '../src/output'
-import { Output, OutputSchema } from '../src/types'
+import { Output } from '../src/types'
 import { getImage } from '../src/image'
+import { OutputSchema } from '../src/schemas'
 
 const IMG_FOLDER = path.join(__dirname)
 
@@ -32,7 +34,7 @@ describe('getOutput', async () => {
     getImage(satie.path),
     getImage(chess.path)
   ]).then(response => [response[0][0], response[1][0], response[2][0]])
-  const output: Output = OutputSchema.parse({})
+  const output: Output = v.parse(OutputSchema, {})
 
   test('response = "buffer", store = undefined', async () => {
     const buffers = await getOutput(images, output)

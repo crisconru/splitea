@@ -1,10 +1,12 @@
-import { ExtensionSchema, Image, Output, OutputSchema } from "./types"
+import * as v from 'valibot'
+import { Image, Output } from "./types"
 import Jimp from 'jimp'
 import { getBufferImages, writeImages } from './image'
+import { ExtensionSchema, OutputSchema } from './schemas'
 
 
 export const checkOutput = (output: Output): void => {
-  OutputSchema.parse(output)
+  v.parse(OutputSchema, output)
 }
 
 export const getOutput = async (images: Jimp[], output: Output): Promise<Image[]> => {
@@ -13,7 +15,7 @@ export const getOutput = async (images: Jimp[], output: Output): Promise<Image[]
   // Storage if neccessary
   if (store) {
     const { path, name, extension: ext } = store
-    const extension = ext ?? ExtensionSchema.parse(images[0].getExtension())
+    const extension = ext ?? v.parse(ExtensionSchema, images[0].getExtension())
     const paths = await writeImages(images, path, name, extension)
     // Response are paths
     if (response === 'path') return paths
