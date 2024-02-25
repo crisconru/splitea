@@ -1,10 +1,8 @@
 import { describe, test, expect } from 'vitest'
-import {
-  Size,
-  Tiles, TilesSchema,
-  HorizontalTiles, HorizontalTilesSchema,
-} from '../src/types'
+import * as v from 'valibot'
+import { Size,Tiles } from '../src/types'
 import { getTilesCoordinates } from '../src/tiles'
+import { TilesSchema } from '../src/schemas'
 
 const forest = { width: 320, height: 224 }
 
@@ -12,7 +10,7 @@ const satie = { width: 2651, height: 3711 }
 
 const chess = { width: 720, height: 720 }
 
-const tilesTest: Tiles = TilesSchema.parse({ mode: 'grid' })
+const tilesTest: Tiles = v.parse(TilesSchema, { mode: 'grid' })
 
 describe('Get Horizontal Tiles', () => {
   const tilesHorizontal: Tiles = { ...tilesTest, mode: 'horizontal' }
