@@ -77,11 +77,7 @@ const getGridTiles = (tiles: GridTiles): TileCoordinates[] => {
 }
 
 export const getTilesCoordinates = (size: Size, tiles: Tiles): TileCoordinates[] => {
-  const parser = {
-    'horizontal': getHorizontalTiles,
-    'vertical': getVerticalTiles,
-    'grid': getGridTiles
-  }
-  // Get coordinates
-  return parser[tiles.mode]({...tiles, size })
+  if (tiles.mode === 'horizontal') return getHorizontalTiles({ ...tiles, size } as HorizontalTiles)
+  if (tiles.mode === 'vertical') return getVerticalTiles({ ...tiles, size } as VerticalTiles)
+  return getGridTiles({ ...tiles, size } as GridTiles)
 }
