@@ -1,27 +1,20 @@
-import Jimp from 'jimp'
-import { throwError } from './errors'
 import { Tiles, Output, Image } from './types'
-import { readImage } from './image'
-import { getTiles, checkTiles } from './tiles'
-import { parseOutput } from './output'
+import { getImage, getSplitImages } from './image'
+import { checkTiles, getTilesCoordinates } from './tiles'
+import { checkOutput, getOutput } from './output'
 
-
-export const Splitea = async (image: Image, tiles: Tiles, output?: Output): Promise<Image[] | undefined> => {
-  try {
-    // 1. Check arguments (Image) + Get the image
-    const [img, size] = await readImage(image)
-    // 2. Check arguments -> Tiles, Outputs
-    checkTiles(tiles, size)
-    parseOutput(output)
-    // 3. Get the tiles
-    const newTiles = getTiles(img, size, tiles)
-    // 4. Get the output
-    // 5. Return solution
-    // Check tiles options
-    // Check output options
-    const slices = newTiles
-    return await Promise.resolve(slices)
-  } catch (error) {
-    throw throwError(error, 'Problems with Splitea')
-  }
+const Splitea = async (image: Image, tiles: Tiles, output: Output): Promise<Image[]> => {
+  // 1. Check Image + Get the image
+  const [img, size] = await getImage(image)
+  // 2. Check arguments -> Tiles, Outputs
+  checkTiles(tiles, size)
+  checkOutput(output)
+  // 3. everything is fine so get tiles and output
+  const coordinates = getTilesCoordinates(size, tiles)
+  const newTiles = getSplitImages(img, size, coordinates, tiles.unique)
+  const newOutput = await getOutput(newTiles, output)
+  // 4. Return solution
+  return newOutput
 }
+
+export default Splitea
