@@ -1,16 +1,18 @@
+import * as v from 'valibot'
 import {
   Size,
-  Tiles, TilesSchema,
-  HorizontalTilesSchema, HorizontalTiles,
-  VerticalTilesSchema, VerticalTiles,
-  GridTilesSchema, GridTiles,
-  TilesCutSchema, TilesCut,
-  TileCoordinatesSchema, TileCoordinates,
+  Tiles,
+  HorizontalTiles,
+  VerticalTiles,
+  GridTiles,
+  TilesCut,
+  TileCoordinates,
 } from "./types"
 import { ThrowSpliteaError } from "./errors"
+import { GridTilesSchema, HorizontalTilesSchema, TileCoordinatesSchema, TilesCutSchema, TilesSchema, VerticalTilesSchema } from './schemas'
 
 export const checkTiles = (tiles: Tiles, size: Size): void => {
-  const { mode } = TilesSchema.parse(tiles)
+  const { mode } = v.parse(TilesSchema, tiles)
   const parser = {
     // Mode horizontal -> Columns || Width
     'horizontal': HorizontalTilesSchema,
@@ -19,7 +21,7 @@ export const checkTiles = (tiles: Tiles, size: Size): void => {
     // Mode Grid -> rows + columns || width + height
     'grid': GridTilesSchema
   }
-  parser[mode].parse({ ...tiles, size })
+  v.parse(parser[mode], { ...tiles, size })
 }
 
 const getCoordinates = (tilesCut: TilesCut): TileCoordinates[] => {
@@ -33,7 +35,7 @@ const getCoordinates = (tilesCut: TilesCut): TileCoordinates[] => {
       // Move by column
       return arrayX.map((_x, indexX) => {
         const x = tileWidth * indexX
-        return TileCoordinatesSchema.parse({ x, y, width: tileWidth, height: tileHeight })
+        return v.parse(TileCoordinatesSchema, { x, y, width: tileWidth, height: tileHeight })
       })
     }).flat()
   } catch (error) {
@@ -42,8 +44,8 @@ const getCoordinates = (tilesCut: TilesCut): TileCoordinates[] => {
 }
 
 const getHorizontalTiles = (tiles: HorizontalTiles): TileCoordinates[] => {
-  const { width , columns, size } = HorizontalTilesSchema.parse(tiles)
-  const tilesCut = TilesCutSchema.parse({
+  const { width , columns, size } = v.parse(HorizontalTilesSchema, tiles)
+  const tilesCut = v.parse(TilesCutSchema, {
     tileWidth: (width > 0) ? width : size.width / columns,
     tileHeight: size.height,
     imageWidth: size.width,
@@ -53,8 +55,8 @@ const getHorizontalTiles = (tiles: HorizontalTiles): TileCoordinates[] => {
 }
 
 const getVerticalTiles = (tiles: VerticalTiles): TileCoordinates[] => {
-  const { height, rows, size } = VerticalTilesSchema.parse(tiles)
-  const tilesCut = TilesCutSchema.parse({
+  const { height, rows, size } = v.parse(VerticalTilesSchema, tiles)
+  const tilesCut = v.parse(TilesCutSchema, {
     tileWidth: size.width,
     tileHeight: (height > 0) ? height : size.height / rows,
     imageWidth: size.width,
@@ -64,8 +66,8 @@ const getVerticalTiles = (tiles: VerticalTiles): TileCoordinates[] => {
 }
 
 const getGridTiles = (tiles: GridTiles): TileCoordinates[] => {
-  const { width, height, rows, columns, size } = GridTilesSchema.parse(tiles)
-  const tilesCut = TilesCutSchema.parse({
+  const { width, height, rows, columns, size } = v.parse(GridTilesSchema, tiles)
+  const tilesCut = v.parse(TilesCutSchema, {
     tileWidth: (width > 0) ? width : size.width / columns,
     tileHeight: (height > 0) ? height : size.height / rows,
     imageWidth: size.width,
