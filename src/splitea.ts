@@ -1,42 +1,20 @@
-// import path from 'path'
-import Jimp from 'jimp'
-import { SpliteaError, throwError } from './errors'
-import { Size, Options, Images } from './types'
-import { parseOptions } from './utils'
+import { Tiles, Output, Image } from './types'
+import { getImage, getSplitImages } from './image'
+import { checkTiles, getTilesCoordinates } from './tiles'
+import { checkOutput, getOutput } from './output'
 
-export const getSize = async (IMG: string): Promise<Size> => {
-  try {
-    const img = await Jimp.read(IMG)
-    const { width, height } = img.bitmap
-    return { width, height }
-  } catch (error) {
-    console.log('Error Splitea')
-    console.log(error)
-    throw new SpliteaError('Invalid dimensions')
-  }
+const Splitea = async (image: Image, tiles: Tiles, output: Output): Promise<Image[]> => {
+  // 1. Check Image + Get the image
+  const [img, size] = await getImage(image)
+  // 2. Check arguments -> Tiles, Outputs
+  checkTiles(tiles, size)
+  checkOutput(output)
+  // 3. everything is fine so get tiles and output
+  const coordinates = getTilesCoordinates(size, tiles)
+  const newTiles = getSplitImages(img, size, coordinates, tiles?.unique)
+  const newOutput = await getOutput(newTiles, output)
+  // 4. Return solution
+  return newOutput
 }
 
-export const readImage = async (image: string): Promise<Jimp> => {
-  try {
-    return await Jimp.read(image)
-  } catch (error) {
-    throw throwError(error)
-  }
-}
-
-export const Splitea = async (image: string, options?: Options): Promise<Images | undefined | never> => {
-  try {
-    // Leer la imagen
-    const img = await readImage(image)
-    const size: Size = { width: img.bitmap.width, height: img.bitmap.height }
-    // Comprobar que las opciones son correctas
-    if (!parseOptions(options, size)) { throw new SpliteaError('Bad options') }
-    // Obtener las imagenes cortadas
-    // Quitar las iguales
-    // Guardar las fotos
-    // Devolver los nombres de las imagenes
-    return await Promise.resolve(['hioo', 'hgjkg'])
-  } catch (error) {
-    throw throwError(error)
-  }
-}
+export default Splitea
