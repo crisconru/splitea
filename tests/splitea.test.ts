@@ -3,7 +3,7 @@ import path from 'node:path'
 import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { Image } from '../src/types'
-import Splitea from '../src'
+import { Splitea } from '../src'
 import { OutputSchema, TilesSchema } from '../src/schemas'
 
 const IMG_FOLDER = path.join(__dirname)

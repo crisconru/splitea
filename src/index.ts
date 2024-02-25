@@ -1,3 +1,3 @@
-import { Splitea } from './splitea'
+import Splitea from './splitea'
 
-export default Splitea
+export { Splitea }
