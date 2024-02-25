@@ -13,7 +13,7 @@ export const BufferSchema = v.instance(Buffer)
 export const JimpSchema = v.instance(Jimp)
 
 export const ImageExistsSchema = v.string([
-  v.custom((file) => !fs.existsSync(file), 'This image does not exists')
+  v.custom((file) => fs.existsSync(file), 'This image does not exists')
 ])
 
 export const ImageSchema = v.union([ImageExistsSchema, BufferSchema])
@@ -33,10 +33,10 @@ export const SizeSchema = v.object({
 export const ModeSchema = v.picklist(MODES)
 
 export const UniqueSchema = v.object({
-  enable: v.optional(BooleanSchema, false),
-  distance: v.optional(v.number([v.minValue(0), v.maxValue(1)]), MAX_DISTANCE),
-  difference: v.optional(v.number([v.minValue(0), v.maxValue(1)]), MAX_DIFFERENCE),
-  requirement: v.optional(v.picklist(['one', 'both']), 'both')
+  enable: v.fallback(BooleanSchema, false),
+  distance: v.fallback(v.number([v.minValue(0), v.maxValue(1)]), MAX_DISTANCE),
+  difference: v.fallback(v.number([v.minValue(0), v.maxValue(1)]), MAX_DIFFERENCE),
+  requirement: v.fallback(v.picklist(['one', 'both']), 'both')
 })
 
 export const TilesSchema = v.object({
@@ -45,13 +45,13 @@ export const TilesSchema = v.object({
   columns: v.optional(NaturalSchema),
   width: v.optional(NaturalSchema),
   height: v.optional(NaturalSchema),
-  unique: v.optional(UniqueSchema, {}),
+  unique: v.fallback(UniqueSchema, { enable: false, distance: MAX_DISTANCE, difference: MAX_DIFFERENCE, requirement: 'both' }),
 })
 
 export const HorizontalTilesSchema = v.object(
   {
-    columns: v.optional(NaturalSchema, 0),
-    width: v.optional(NaturalSchema, 0),
+    columns: v.fallback(NaturalSchema, 0),
+    width: v.fallback(NaturalSchema, 0),
     size: SizeSchema
   },
   [
@@ -67,8 +67,8 @@ export const HorizontalTilesSchema = v.object(
 
 export const VerticalTilesSchema = v.object(
   {
-    rows: v.optional(NaturalSchema, 0),
-    height: v.optional(NaturalSchema, 0),
+    rows: v.fallback(NaturalSchema, 0),
+    height: v.fallback(NaturalSchema, 0),
     size: SizeSchema
   },
   [
@@ -84,15 +84,15 @@ export const VerticalTilesSchema = v.object(
 
 export const GridTilesSchema = v.object(
   {
-    columns: v.optional(NaturalSchema, 0),
-    rows: v.optional(NaturalSchema, 0),
-    width: v.optional(NaturalSchema, 0),
-    height: v.optional(NaturalSchema, 0),
+    columns: v.fallback(NaturalSchema, 0),
+    rows: v.fallback(NaturalSchema, 0),
+    width: v.fallback(NaturalSchema, 0),
+    height: v.fallback(NaturalSchema, 0),
     size: SizeSchema
   },
   [
     v.custom(({ columns, rows, width, height }) => [columns, rows, width, height].some(greaterThanZero), 'Provide columns-rows or height-width (px)'),
-    v.custom(({ columns, rows, width, height }) => xor([columns, rows].every(greaterThanZero), [width, height].every(greaterThanZero)), 'Provide columns-rows or height-width (px), not both'),
+    v.custom(({ columns, rows, width, height }) => xor( [columns, rows].some(greaterThanZero), [width, height].some(greaterThanZero) ) , 'Provide columns-rows or height-width (px), not both'),
     v.custom(({ columns, rows, size }) => {
       if ([columns, rows].every(greaterThanZero)) return isSubmultiple(size.width, columns) && isSubmultiple(size.height, rows)
       return true
@@ -120,7 +120,7 @@ export const TilesCutSchema = v.object(
     v.custom(({ tileWidth, imageWidth }) => tileWidth <= imageWidth, 'tileWidth cannot be bigger than imageWidth'),
     v.custom(({ tileWidth, imageWidth }) => isSubmultiple(imageWidth, tileWidth), 'tileWidth has to be a submultiple of imageWidth'),
     v.custom(({ tileHeight, imageHeight }) => tileHeight <= imageHeight, 'tileHeight cannot be bigger than imageHeight'),
-    v.custom(({ tileHeight, imageHeight }) => isSubmultiple(tileHeight, imageHeight), 'tileHeight has to be a submultiple of imageHeight'),
+    v.custom(({ tileHeight, imageHeight }) => isSubmultiple(imageHeight, tileHeight), 'tileHeight has to be a submultiple of imageHeight'),
   ]
 )
 
