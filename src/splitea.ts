@@ -11,7 +11,7 @@ const Splitea = async (image: Image, tiles: Tiles, output: Output): Promise<Imag
   checkOutput(output)
   // 3. everything is fine so get tiles and output
   const coordinates = getTilesCoordinates(size, tiles)
-  const newTiles = getSplitImages(img, size, coordinates, tiles.unique)
+  const newTiles = getSplitImages(img, size, coordinates, tiles?.unique)
   const newOutput = await getOutput(newTiles, output)
   // 4. Return solution
   return newOutput

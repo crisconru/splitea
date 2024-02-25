@@ -26,7 +26,6 @@ describe('Tiles', () => {
     rows: 0, columns: 0,
     width: 0, height: 0,
     unique: {
-      enable: false,
       distance: MAX_DISTANCE,
       difference: MAX_DIFFERENCE,
       requirement: 'both'

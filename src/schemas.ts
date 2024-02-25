@@ -33,7 +33,7 @@ export const SizeSchema = v.object({
 export const ModeSchema = v.picklist(MODES)
 
 export const UniqueSchema = v.object({
-  enable: v.fallback(BooleanSchema, false),
+  // enable: v.fallback(BooleanSchema, false),
   distance: v.fallback(v.number([v.minValue(0), v.maxValue(1)]), MAX_DISTANCE),
   difference: v.fallback(v.number([v.minValue(0), v.maxValue(1)]), MAX_DIFFERENCE),
   requirement: v.fallback(v.picklist(['one', 'both']), 'both')
@@ -45,7 +45,7 @@ export const TilesSchema = v.object({
   columns: v.optional(NaturalSchema),
   width: v.optional(NaturalSchema),
   height: v.optional(NaturalSchema),
-  unique: v.fallback(UniqueSchema, { enable: false, distance: MAX_DISTANCE, difference: MAX_DIFFERENCE, requirement: 'both' }),
+  unique: v.optional(UniqueSchema),
 })
 
 export const HorizontalTilesSchema = v.object(

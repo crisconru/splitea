@@ -4,7 +4,7 @@ import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { Image } from '../src/types'
 import { Splitea } from '../src'
-import { OutputSchema, TilesSchema } from '../src/schemas'
+import { OutputSchema, TilesSchema, UniqueSchema } from '../src/schemas'
 
 const IMG_FOLDER = path.join(__dirname)
 
@@ -54,7 +54,7 @@ describe('Splitea Grid', () => {
   })
 
   test('chess grid unique', async () => {
-    tiles.unique.enable = true
+    tiles.unique = v.parse(UniqueSchema, {})
     const imgs = await Splitea(image, tiles, output)
     expect(imgs).toHaveLength(22)
     await Promise.all(imgs.map(async (img) => {
@@ -65,11 +65,11 @@ describe('Splitea Grid', () => {
   }, 100000)
 
   test('chess grid unique tunning requirement', async () => {
-    tiles.unique.enable = true
-    tiles.unique.difference = 0.15
-    tiles.unique.distance = 0.15
-
-    tiles.unique.requirement = 'both'
+    tiles.unique = v.parse(UniqueSchema, {
+      difference: 0.15,
+      distance: 0.15,
+      requirement: 'both',
+    })
     let imgs = await Splitea(image, tiles, output)
     expect(imgs).toHaveLength(11)
     await Promise.all(imgs.map(async (img) => {

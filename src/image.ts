@@ -59,9 +59,9 @@ export const getUniqueImages = (images: Jimp[], unique: Unique): Jimp[] => {
   return uniques
 }
 
-export const getSplitImages = (image: Jimp, size: Size, tilesCoordinate: TileCoordinates[], unique: Unique): Jimp[] => {
+export const getSplitImages = (image: Jimp, size: Size, tilesCoordinate: TileCoordinates[], unique: Unique | undefined): Jimp[] => {
   const images = tilesCoordinate.map(tileCoordinates => getSplitImage(image, size, tileCoordinates))
-  if (unique.enable && images.length > 1) { return getUniqueImages(images, unique) }
+  if (unique && images.length > 1) { return getUniqueImages(images, unique) }
   return images
 }
 
