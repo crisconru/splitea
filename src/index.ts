@@ -1,3 +1,3 @@
-import Splitea from './splitea'
-
-export { Splitea }
+export * from './splitea'
+export * from './constants'
+export * from './types'

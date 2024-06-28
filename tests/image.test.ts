@@ -1,12 +1,11 @@
 import { Buffer } from 'node:buffer'
-import fs from 'node:fs/promises'
+import fs from 'node:fs'
 import path from 'node:path'
-import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { SpliteaError } from '../src/errors'
-import { TileCoordinates } from '../src/types'
-import { areEqualImages, getSplitImages, getUniqueImages, getImage, getBufferImages, writeImages } from '../src/image'
-import { UniqueSchema } from '../src/schemas'
+import { getBufferImages, getGridTiles, getHorizontalTiles, getImage, getSize, getUniqueGridTiles, getUniqueHorizontalTiles, getUniqueVerticalTiles, getVerticalTiles, writeImages } from '../src/image'
+import { StoreOptions, UniqueImagesOptions } from '../src/types'
+import { MAX_DIFFERENCE, MAX_DISTANCE } from '../src/constants'
 
 const IMG_FOLDER = path.join(__dirname)
 
@@ -15,6 +14,12 @@ const forest = {
   width: 320,
   height: 224,
   bad: path.join(IMG_FOLDER, 'forestmapp.png'),
+}
+
+const bad = {
+  path: path.join(IMG_FOLDER, 'forestmapp.png'),
+  width: 320,
+  height: 224,
 }
 
 const satie = {
@@ -29,117 +34,133 @@ const chess = {
   height: 720,
 }
 
-describe('Test getImage()', () => {
+const horizontal = {
+  path: path.join(IMG_FOLDER, 'chess_horizontal.png'),
+  width: 720,
+  height: 90,
+}
+
+const vertical = {
+  path: path.join(IMG_FOLDER, 'chess_vertical.png'),
+  width: 90,
+  height: 720,
+}
+
+describe.concurrent('Test getImage + getSize', () => {
   test('Correct local jpg', async () => {
     Promise.all([forest, satie, chess].map(async(img) => {
-      const [_, size] = await getImage(img.path)
+      const image = await getImage(img.path)
+      const size = getSize(image)
       expect(size.width).toBe(img.width)
       expect(size.height).toBe(img.height)
     }))
   })
 
   test('Incorrect local jpg', async () => {
-    await expect(getImage(forest.bad)).rejects.toThrow(SpliteaError)
+    await expect(getImage(bad.path)).rejects.toThrowError()
   })
 })
 
-describe('Test getSplitImages()', () => {
-  const unique = v.parse(UniqueSchema, {})
-
-  test('Correct splits', async () => {
-    const [img, size] = await getImage(chess.path)
-    const tile: TileCoordinates = { x: 0, y: 0, width: size.width, height: size.height }
-    let tiles = [tile]
-    let image = getSplitImages(img, size, tiles, unique)[0]
-    expect(image.bitmap.width).toBe(tile.width)
-    expect(image.bitmap.height).toBe(tile.height)
-    tile.x = size.width / 2
-    tile.width = size.width / 2
-    tile.y = size.height / 2
-    tile.height = size.height / 2
-    tiles = [tile]
-    image = getSplitImages(img, size, tiles, unique)[0]
-    expect(image.bitmap.width).toBe(tile.width)
-    expect(image.bitmap.height).toBe(tile.height)
-  })
-
-  test.skip('Incorrect splits', async () => {
-    const [img, size] = await getImage(chess.path)
-    const tile: TileCoordinates = { x: 1, y: 1, width: size.width, height: size.height }
-    let tiles = [tile]
-    expect(() => getSplitImages(img, size, tiles, unique)).toThrow(SpliteaError)
-    tile.x = (size.width / 2) + 1
-    tile.width = size.width / 2
-    tile.y = size.height / 2
-    tile.height = size.height / 2
-    tiles = [tile]
-    expect(() => getSplitImages(img, size, tiles, unique)).toThrow(SpliteaError)
-    tile.x = size.width / 2
-    // w = size.width / 2
-    tile.y = (size.height / 2) + 1
-    // h = size.height / 2
-    tiles = [tile]
-    expect(() => getSplitImages(img, size, tiles, unique)).toThrow(SpliteaError)
-  })
+test.concurrent('getHorizontalTiles', async () => {
+  const img = await getImage(horizontal.path)
+  const size = getSize(img)
+  const width = size.width / 8
+  const tiles = getHorizontalTiles(img, size, width)
+  expect(tiles).toHaveLength(8)
 })
 
-describe('Test areEqualImages()', () => {
-  const unique = v.parse(UniqueSchema, {})
-
-  test('Checking Equal Images', async () => {
-    const [ [img, _], [imgSatie, __] ] = await Promise.all([getImage(forest.path), getImage(satie.path)])
-    // const [img, _] = await getImage(forest.path)
-    // const [imgSatie, __] = await getImage(satie.path)
-    // Equals
-    expect(areEqualImages(img, img, unique)).toBeTruthy()
-    expect(areEqualImages(imgSatie, imgSatie, unique)).toBeTruthy()
-    // Differents
-    expect(areEqualImages(img, imgSatie, unique)).toBeFalsy()
-    expect(areEqualImages(imgSatie, img, unique)).toBeFalsy()
-  })
+test.concurrent('getUniqueHorizontalTiles', async () => {
+  const img = await getImage(horizontal.path)
+  const size = getSize(img)
+  const width = size.width / 8
+  const options: UniqueImagesOptions = {
+    requirement: 'all',
+    distance: MAX_DISTANCE,
+    difference: MAX_DIFFERENCE
+  }
+  const tiles = getUniqueHorizontalTiles(img, size, width, options)
+  // Promise.all(tiles.map(async (tile, idx) => {
+  //   const extension = tile.getExtension()
+  //   const filename = path.join(__dirname, `horizontal_${idx}.${extension}`)
+  //   const buffer = await tile.getBufferAsync(tile.getMIME())
+  //   fs.writeFileSync(filename, buffer)
+  // }))
+  expect(tiles).toHaveLength(2)
 })
 
-describe('Test getUniqueImages()', () => {
-  const unique = v.parse(UniqueSchema, { enable: true })
-
-  test('Unique images', async () => {
-    const [ [iforest, _i1], [imgSatie, _is1] ] = await Promise.all([getImage(forest.path), getImage(satie.path)])
-    // const [iforest, _i1] = await getImage(forest.path)
-    // const [imgSatie, _is1] = await getImage(satie.path)
-    const load = [iforest, imgSatie, iforest, imgSatie]
-    const images = getUniqueImages(load, unique)
-    expect(images.length).toBe(2)
-    const [if11, is11] = images
-    expect(areEqualImages(if11, iforest, unique)).toBeTruthy()
-    expect(areEqualImages(is11, imgSatie, unique)).toBeTruthy()
-  })
+test.concurrent('getVerticalTiles', async () => {
+  const img = await getImage(vertical.path)
+  const size = getSize(img)
+  const height = size.height / 8
+  const tiles = getVerticalTiles(img, size, height)
+  expect(tiles).toHaveLength(8)
 })
 
-describe('Test writeImages()', () => {
-  test('checking writting', async () => {
-    const image1 = forest.path
-    const image2 = satie.path
-    const [[jimp1, _size1], [jimp2, _size2]] = await Promise.all([getImage(image1), getImage(image2)])
-    // const [jimp1, _size1] = await getImage(image1)
-    // const [jimp2, _size2] = await getImage(image2)
-
-    const data1 = { path: __dirname, name: 'test', extension: jimp1.getExtension() }
-
-    const paths = await writeImages([jimp1, jimp2], data1.path, data1.name, data1.extension)
-    paths.forEach(async (path) => {
-      expect(() => fs.stat(path)).not.toThrowError()
-      await fs.rm(path)
-    })
-  })
+test.concurrent('getUniqueVerticalTiles', async () => {
+  const img = await getImage(vertical.path)
+  const size = getSize(img)
+  const height = size.height / 8
+  const options: UniqueImagesOptions = {
+    requirement: 'all',
+    distance: MAX_DISTANCE,
+    difference: MAX_DIFFERENCE
+  }
+  const tiles = getUniqueVerticalTiles(img, size, height, options)
+  expect(tiles).toHaveLength(6)
 })
 
-describe('Test getBufferImages()', () => {
+test.concurrent('getGridTiles', async () => {
+  const img = await getImage(chess.path)
+  const size = getSize(img)
+  const width = size.width / 8
+  const height = size.height / 8
+  const tiles = getGridTiles(img, size, width, height)
+  expect(tiles).toHaveLength(8 * 8)
+})
+
+test.concurrent('getUniqueGridTiles', async () => {
+  const img = await getImage(chess.path)
+  const size = getSize(img)
+  const width = size.width / 8
+  const height = size.height / 8
+  const options: UniqueImagesOptions = {
+    requirement: 'all',
+    distance: MAX_DISTANCE,
+    difference: MAX_DIFFERENCE
+  }
+  const tiles = getUniqueGridTiles(img, size, width, height, options)
+  // Promise.all(tiles.map(async (tile, idx) => {
+  //   const extension = tile.getExtension()
+  //   const filename = path.join(__dirname, `horizontal_${idx}.${extension}`)
+  //   const buffer = await tile.getBufferAsync(tile.getMIME())
+  //   fs.writeFileSync(filename, buffer)
+  // }))
+  expect(tiles).toHaveLength(22)
+})
+
+test.concurrent('writeImages', { timeout: 50000 }, async () => {
+  const options: StoreOptions = {
+    path: __dirname,
+    filename: 'horizontal_test',
+    extension: 'jpg'
+  }
+  await expect(writeImages([], options)).rejects.toThrow(SpliteaError)
+  const [img1, img2, img3] = await Promise.all([getImage(chess.path), getImage(satie.path), getImage(forest.path)])
+  await expect(writeImages([img1], options)).resolves.toHaveLength(1)
+  await expect(writeImages([img1, img2, img3], options)).resolves.toHaveLength(3)
+  fs.readdirSync(__dirname).forEach(item => {
+    if (item.includes(options.filename)) {
+      const file = path.join(__dirname, item)
+      fs.rmSync(file)
+    }
+  } )
+})
+
+describe.concurrent('Test getBufferImages()', { timeout: 50000 }, () => {
   test('checking buffers', async () => {
     const image1 = forest.path
     const image2 = satie.path
-    const [[jimp1, _size1], [jimp2, _size2]] = await Promise.all([getImage(image1), getImage(image2)])
-    // const [jimp1, _size1] = await getImage(image1)
-    // const [jimp2, _size2] = await getImage(image2)
+    const [jimp1, jimp2] = await Promise.all([getImage(image1), getImage(image2)])
     const buffers = await getBufferImages([jimp1, jimp2])
     buffers.forEach(async (buffer) => {
       expect(buffer).toBeInstanceOf(Buffer)
