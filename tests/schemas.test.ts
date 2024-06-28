@@ -1,302 +1,155 @@
-import { rmdirSync, existsSync } from 'node:fs'
-import * as v from 'valibot'
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import { Size, Tiles, Output, TilesCut } from '../src/types'
-import { MAX_DIFFERENCE, MAX_DISTANCE, MODES } from '../src/constants'
-import { GridTilesSchema, HorizontalTilesSchema, OutputSchema, SizeSchema, TilesCutSchema, TilesSchema, VerticalTilesSchema } from '../src/schemas'
+import type { GridOptions, HorizontalOptions, Options, VerticalOptions } from '../src/types'
+import { ExtensionSchema, GridOptionsSchema, HorizontalOptionsSchema, ImageSchema, OptionsSchema, PathSchema, ResponseSchema, VerticalOptionsSchema } from '../src/schemas'
+import { EXTENSIONS, MAX_DIFFERENCE, MAX_DISTANCE } from '../src'
 
-describe('Size', () => {
-  test('test Size', () => {
-    const size: Size = {} as Size
-    expect(() => v.parse(SizeSchema, size)).toThrowError()
-    size.width = -1
-    size.height = 5.0
-    expect(() => v.parse(SizeSchema, size)).toThrowError()
-    size.width = 1.2
-    expect(() => v.parse(SizeSchema, size)).toThrowError()
-    size.width = 1
-    expect(() => v.parse(SizeSchema, size)).not.toThrowError()
-    expect(v.parse(SizeSchema, size)).toStrictEqual({ width: 1, height: 5})
+const IMG_FOLDER = path.join(__dirname)
+
+const forest = {
+  file: path.join(IMG_FOLDER, 'forestmap.png'),
+  width: 320,
+  height: 224,
+}
+
+const satie = {
+  file: path.join(IMG_FOLDER, 'Ericsatie.jpg'),
+  width: 2651,
+  height: 3711,
+}
+
+const chess = {
+  file: path.join(IMG_FOLDER, 'chess.png'),
+  width: 720,
+  height: 720,
+}
+
+const bad = {
+  file: path.join(IMG_FOLDER, 'forestmapp.png'),
+  width: 320,
+  height: 224,
+}
+// ImageSchema ----------------------------------------------------------------
+describe('ImageSchema', () => {
+  test('input non exists image throw an exception', () => {
+    expect(() => ImageSchema.parse(bad.file)).toThrow()
+  })
+
+  test('input image exists', async () => {
+    expect(ImageSchema.parse(satie.file)).toBeTypeOf('string')
+  })
+
+  test('input buffer', () => {
+    const buffer = fs.readFileSync(forest.file)
+    expect(ImageSchema.safeParse(buffer).success).toBeTruthy()
   })
 })
-
-describe('Tiles', () => {
-  const tilesModel: Tiles = {
-    mode: 'horizontal',
-    rows: 0, columns: 0,
-    width: 0, height: 0,
-    unique: {
-      distance: MAX_DISTANCE,
-      difference: MAX_DIFFERENCE,
-      requirement: 'both'
+// ResponseSchema -------------------------------------------------------------
+test('ResponseSchema', () => {
+  ['buffer', 'file'].forEach(el => {
+    expect(ResponseSchema.parse(el)).toBe(el)
+  })
+  ;['Buffer', 'File', {}, false].forEach(el => {
+    expect(() => ResponseSchema.parse(el)).toThrow()
+  })
+})
+// PathSchema -----------------------------------------------------------------
+describe('PathSchema', () => {
+  test('Cannot create path', () => {
+    const badPath = path.join(IMG_FOLDER, '\0')
+    const parsed = PathSchema.safeParse(badPath)
+    if (parsed.success) {
+      fs.rmdirSync(badPath)
     }
-  }
-  const sizeModel: Size = { width: 20, height: 30 }
+    expect(parsed.success).toBeFalsy()
+  })
 
-  test('test Tiles', () => {
-    const tiles : Tiles = {} as Tiles
-    let result = v.safeParse(TilesSchema, tiles)
-    expect(result.success).toBeFalsy();
-    ['horizontal', 'vertical', 'grid'].forEach(mode => {
-      tiles.mode = mode as typeof MODES[number]
-      result = v.safeParse(TilesSchema, tiles)
-      const expected = { ...tilesModel, mode }
-      expect(result.success).toBeTruthy()
-      if (result.success)
-        expect(expected).toMatchObject(result.output)
-    });
-  })
-  
-  test('test Horizontal', ()  => {
-    const mode = 'horizontal'
-    const size = {...sizeModel }
-    const tiles: Tiles = { mode } as Tiles
-    // const horizontal: HorizontalTiles = {...tiles, size}
-    const horizontal = {...tiles, size}
-    // Empty columns width
-    let result = v.safeParse(HorizontalTilesSchema, horizontal)
-    expect(result.success).toBeFalsy()
-    // Both columns width
-    horizontal.columns = 1
-    horizontal.width = 1
-    result = v.safeParse(HorizontalTilesSchema, horizontal)
-    expect(result.success).toBeFalsy()
-    // Just columns
-    horizontal.columns = 10
-    horizontal.width = 0
-    result = v.safeParse(HorizontalTilesSchema, horizontal)
-    expect(result.success).toBeTruthy()
-    // Just width
-    horizontal.columns = 0
-    horizontal.width = 5
-    result = v.safeParse(HorizontalTilesSchema, horizontal)
-    expect(result.success).toBeTruthy()
-    // Does not mind rows and height
-    horizontal.rows = 1
-    horizontal.height = 1
-    result = v.safeParse(HorizontalTilesSchema, horizontal)
-    expect(result.success).toBeTruthy()    
-  })
-  
-  test('test Vertical', ()  => {
-    const mode = 'vertical'
-    const size = {...sizeModel }
-    const tiles: Tiles = { mode } as Tiles
-    // const vertical: VerticalTiles = {...tiles, size}
-    const vertical = {...tiles, size}
-    // Empty rows height
-    let result = v.safeParse(VerticalTilesSchema, vertical)
-    expect(result.success).toBeFalsy()
-    // Both rows height
-    vertical.rows = 1
-    vertical.height = 1
-    result = v.safeParse(VerticalTilesSchema, vertical)
-    expect(result.success).toBeFalsy()
-    // Just rows
-    vertical.rows = 10
-    vertical.height = 0
-    result = v.safeParse(VerticalTilesSchema, vertical)
-    expect(result.success).toBeTruthy()
-    // Just height
-    vertical.rows = 0
-    vertical.height = 5
-    result = v.safeParse(VerticalTilesSchema, vertical)
-    expect(result.success).toBeTruthy()
-    // Does not mind columns and width
-    vertical.columns = 1
-    vertical.width = 1
-    result = v.safeParse(VerticalTilesSchema, vertical)
-    expect(result.success).toBeTruthy()    
-  })
-  
-  test('test Grid', ()  => {
-    const mode = 'grid'
-    const size = {...sizeModel }
-    const tiles: Tiles = { mode } as Tiles
-    // const grid: GridTiles = {...tiles, size}
-    const grid = {...tiles, size}
-    // Empty rows+columns + width+height
-    let result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy()
-    // Both rows+columns + width+height
-    grid.rows = 1
-    grid.columns = 1
-    grid.width = 1
-    grid.height = 1
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy()
-    // Just rows+columns
-    grid.rows = 10
-    grid.columns = 5
-    grid.width = 0
-    grid.height = 0
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeTruthy()
-    // Just width+height
-    grid.rows = 0
-    grid.columns = 0
-    grid.width = 10
-    grid.height = 5
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeTruthy()
-    // Just rows+columns not width or height
-    grid.rows = 10
-    grid.columns = 5
-    grid.width = 1
-    grid.height = 0
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy()
-    grid.width = 0
-    grid.height = 1
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy()
-    // Just width+height not rows or columns
-    grid.width = 10
-    grid.height = 5
-    grid.rows = 1
-    grid.columns = 0
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy() 
-    grid.rows = 0
-    grid.columns = 1
-    result = v.safeParse(GridTilesSchema, grid)
-    expect(result.success).toBeFalsy() 
+  test('Not write permissions', () => {
+    const badPath = path.join(IMG_FOLDER, 'bad')
+    if (!fs.existsSync(badPath)) {
+      fs.mkdirSync(badPath, { mode: 444 })
+    }
+    fs.chmodSync(badPath, 0o444)
+    const parsed = PathSchema.safeParse(badPath)
+    fs.rmdirSync(badPath)
+    expect(parsed.success).toBeFalsy()
   })
 })
+// FilenameSchema -------------------------------------------------------------
+// ExtensionSchema ------------------------------------------------------------
+test('ExtensionSchema', () => {
+  EXTENSIONS.forEach(ext => expect(ExtensionSchema.parse(ext)).toBe(ext))
+  ;EXTENSIONS.forEach(ext => expect(ExtensionSchema.parse(ext.toLocaleUpperCase())).toBe(ext))
+  ;expect(() => ExtensionSchema.parse('peneg')).toThrow()
+})
+// UniqueRequirementSchema ----------------------------------------------------
+// DistanceSchema -------------------------------------------------------------
+// DifferenceSchema -----------------------------------------------------------
+// OptionsSchema --------------------------------------------------------------
+describe('OptionsSchema', () => {
+  test('Default object', () => {
+    const options = {}
+    expect(OptionsSchema.parse(options)).toEqual({
+      response: 'buffer',
+      filename: 'tile',
+      unique: false,
+      uniqueRequirement: 'all',
+      distance: MAX_DISTANCE,
+      difference: MAX_DIFFERENCE
+    })
+  })
 
-describe('Tiles Cut', () => {
-  test('test Tiles Cut', () => {
-    const tilesCut: TilesCut = {} as TilesCut
-    // Empty
-    let result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    tilesCut.imageWidth = 20
-    tilesCut.imageHeight = 30
-    tilesCut.tileWidth = 2
-    tilesCut.tileHeight = 3
-    // Correct
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeTruthy()
-    // Bigger than limits
-    tilesCut.tileWidth = tilesCut.imageWidth + 1
-    tilesCut.tileHeight = 10
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    tilesCut.tileWidth = 10
-    tilesCut.tileHeight = tilesCut.imageHeight + 1
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    // Not submultiples
-    tilesCut.tileWidth = 0
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    tilesCut.tileWidth = 3
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    tilesCut.tileWidth = 10
-    tilesCut.tileHeight = 0
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
-    tilesCut.tileHeight = 9
-    result = v.safeParse(TilesCutSchema, tilesCut)
-    expect(result.success).toBeFalsy()
+  test('If response is "file" then path must be provided', () => {
+    const options = { response: 'file' } satisfies Options
+    expect(() => OptionsSchema.parse(options)).toThrow()
   })
 })
-
-describe('Output', () => {
-  test('Response empty', () => {
-    const output: Output = {} as Output
-    // Empty => buffer response
-    let result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-    if (result.success)
-      expect(result.output.response).toStrictEqual('buffer')
+// HorizontalOptionsSchema ----------------------------------------------------
+describe('HorizontalOptionsSchema', () => {
+  test('Just provide at least columns or width but not both', () => {
+    const columns = 4
+    const width = 40
+    const options = { columns, width } satisfies HorizontalOptions
+    expect(() => HorizontalOptionsSchema.parse(options)).toThrow()
+    expect(() => HorizontalOptionsSchema.parse({})).toThrow()
+    const opt1 = { columns }
+    expect(HorizontalOptionsSchema.safeParse(opt1).success).toBeTruthy()
+    const opt2 = { width }
+    expect(HorizontalOptionsSchema.safeParse(opt2).success).toBeTruthy()
   })
-
-  test('Response buffer', () => {
-    const output: Output = { response: 'buffer'} as Output
-    let result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-    if (result.success)
-      expect(result.output.response).toStrictEqual('buffer')
-    // Add store
-    output.store = { path: './', name: 'store' }
-    result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-
-    output.store.path = 'storeTest'
-    result = v.safeParse(OutputSchema, output)
-    rmdirSync(output.store.path, { recursive: true })
-    expect(result.success).toBeTruthy()
+})
+// VerticalOptionsSchema ------------------------------------------------------
+describe('VerticalOptionsSchema', () => {
+  test('Just provide at least rows or height but not both', () => {
+    const rows = 4
+    const height = 40
+    const options = { rows, height } satisfies VerticalOptions
+    expect(() => VerticalOptionsSchema.parse(options)).toThrow()
+    expect(() => VerticalOptionsSchema.parse({})).toThrow()
+    const opt1 = { rows }
+    expect(VerticalOptionsSchema.safeParse(opt1).success).toBeTruthy()
+    const opt2 = { height }
+    expect(VerticalOptionsSchema.safeParse(opt2).success).toBeTruthy()
   })
-
-  test('Response path', () => {
-    const output: Output = { response: 'path' } as Output
-    // Response = path No store
-    let result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeFalsy()
-    // Response = path + Store
-    output.store = { path: './', name: 'store' }
-    result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-
-    output.store.path = 'storeTest'
-    result = v.safeParse(OutputSchema, output)
-    rmdirSync(output.store.path)
-    expect(result.success).toBeTruthy()
-  })
-
-  test('Invalid paths - filenames', () => {
-    const response = 'path'
-    const store = { path: './', name: 'storeTest' }
-    let output = v.parse(OutputSchema, { response, store })
-    let result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-    // Invalid filenames
-    const invalidFiles = ['foo/bar', 'foo\u0000bar', 'foo\u001Fbar', 'foo*bar', 'foo:bar', 'AUX', 'com1', 'foo\\bar']
-    invalidFiles.forEach(pattern => {
-      store.name = pattern
-      output = { response, store }
-      result = v.safeParse(OutputSchema, output)
-      expect(result.success).toBeFalsy()
-    })
-    // Invalid paths
-    const invalidPaths = ['foo/bar', 'foo\u0000bar', 'foo\u001Fbar', 'foo*bar', 'foo:bar', 'AUX', 'com1', 'foo\\bar']
-    invalidPaths.forEach(pattern => {
-      store.path = pattern
-      output = { response, store }
-      result = v.safeParse(OutputSchema, output)
-      if (existsSync(store.path)) {
-        rmdirSync(store.path, {recursive: true})
-      }
-      expect(result.success).toBeFalsy()
-    })
-  })
-
-  test('Valid paths - filenames', () => {
-    const response = 'path'
-    const store = { path: 'storePath', name: 'storeFile' }
-    let output = v.parse(OutputSchema, { response, store })
-    let result = v.safeParse(OutputSchema, output)
-    expect(result.success).toBeTruthy()
-    rmdirSync(store.path, { recursive: true })
-    // Valid filenames
-    const validFiles = ['foo-bar', 'hola.txt']
-    validFiles.forEach(pattern => {
-      store.name = pattern
-      output = { response, store }
-      result = v.safeParse(OutputSchema, output)
-      expect(result.success).toBeTruthy()
-    })
-    rmdirSync(store.path)
-    // Valid filenames
-    const validPaths = ['foo-bar', 'helloWorld']
-    validPaths.forEach(pattern => {
-      store.path = pattern
-      output = { response, store }
-      result = v.safeParse(OutputSchema, output)
-      expect(result.success).toBeTruthy()
-      rmdirSync(store.path, {recursive: true})
-    })
+})
+// GridOptionsSchema ----------------------------------------------------------
+describe('GridOptionsSchema', () => {
+  test('Just provide at least columns-rows or width-height but not both', () => {
+    const rows = 4
+    const columns = 4
+    const width = 40
+    const height = 40
+    const options = { rows, columns, width, height } satisfies GridOptions
+    expect(() => GridOptionsSchema.parse(options)).toThrow()
+    expect(() => GridOptionsSchema.parse({})).toThrow()
+    const opt1 = { rows, width }
+    expect(() => GridOptionsSchema.parse(opt1)).toThrow()
+    const opt2 = { columns, height }
+    expect(() => GridOptionsSchema.parse(opt2)).toThrow()
+    const opt3 = { rows, columns }
+    expect(GridOptionsSchema.safeParse(opt3).success).toBeTruthy()
+    const opt4 = { width, height }
+    expect(GridOptionsSchema.safeParse(opt4).success).toBeTruthy()
   })
 })
