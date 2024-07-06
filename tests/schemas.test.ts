@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import type { GridOptions, HorizontalOptions, Options, VerticalOptions } from '../src/types'
-import { ExtensionSchema, GridOptionsSchema, HorizontalOptionsSchema, ImageSchema, OptionsSchema, PathSchema, ResponseSchema, VerticalOptionsSchema } from '../src/schemas'
+import { ExtensionSchema, GridOptionsSchema, HorizontalOptionsSchema, ImageSourceSchema, OptionsSchema, PathSchema, ResponseSchema, VerticalOptionsSchema } from '../src/schemas'
 import { EXTENSIONS, MAX_DIFFERENCE, MAX_DISTANCE } from '../src'
 
 const IMG_FOLDER = path.join(__dirname)
@@ -33,16 +33,16 @@ const bad = {
 // ImageSchema ----------------------------------------------------------------
 describe('ImageSchema', () => {
   test('input non exists image throw an exception', () => {
-    expect(() => ImageSchema.parse(bad.file)).toThrow()
+    expect(() => ImageSourceSchema.parse(bad.file)).toThrow()
   })
 
   test('input image exists', async () => {
-    expect(ImageSchema.parse(satie.file)).toBeTypeOf('string')
+    expect(ImageSourceSchema.parse(satie.file)).toBeTypeOf('string')
   })
 
   test('input buffer', () => {
     const buffer = fs.readFileSync(forest.file)
-    expect(ImageSchema.safeParse(buffer).success).toBeTruthy()
+    expect(ImageSourceSchema.safeParse(buffer).success).toBeTruthy()
   })
 })
 // ResponseSchema -------------------------------------------------------------

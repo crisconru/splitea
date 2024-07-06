@@ -12,13 +12,13 @@ export const NaturalSchema = ValibotValidator<UnsignedInteger>(ValibotNaturalSch
 
 const ValibotBufferSchema = v.instance(Buffer)
 // IMAGE --------------------------------------------------------------------------------------------------------------
-const ValibotImageExistsSchema = v.pipe(
+const ValibotFileExistsSchema = v.pipe(
   v.string(),
   v.check((file: string) => fs.existsSync(file), 'This image does not exists')
 )
 
-const ValibotImageSchema = v.union([ValibotImageExistsSchema, ValibotBufferSchema])
-export const ImageSchema = ValibotValidator<v.InferInput<typeof ValibotImageSchema>>(ValibotImageSchema)
+const ValibotImageSourceSchema = v.union([ValibotFileExistsSchema, ValibotBufferSchema])
+export const ImageSourceSchema = ValibotValidator<v.InferInput<typeof ValibotImageSourceSchema>>(ValibotImageSourceSchema)
 // OPTIONS ------------------------------------------------------------------------------------------------------------
 const ValibotResponseSchema = v.picklist(['buffer', 'file'])
 export const ResponseSchema = ValibotValidator<v.InferInput<typeof ValibotResponseSchema>>(ValibotResponseSchema)

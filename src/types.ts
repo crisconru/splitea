@@ -1,9 +1,9 @@
-import { DifferenceSchema, DistanceSchema, ExtensionSchema, FilenameSchema, GridOptionsSchema, HorizontalOptionsSchema, ImageSchema, NaturalSchema, OptionsSchema, PathSchema, ResponseSchema, UniqueRequirementSchema, VerticalOptionsSchema } from './schemas'
+import { DifferenceSchema, DistanceSchema, ExtensionSchema, FilenameSchema, GridOptionsSchema, HorizontalOptionsSchema, ImageSourceSchema, NaturalSchema, OptionsSchema, PathSchema, ResponseSchema, UniqueRequirementSchema, VerticalOptionsSchema } from './schemas'
 
 // PRIMITIVES -----------------------------------------------------------------
 export type Natural = ReturnType<typeof NaturalSchema.parse>
 // IMAGE ----------------------------------------------------------------------
-export type Image = ReturnType<typeof ImageSchema.parse>
+export type ImageSource = ReturnType<typeof ImageSourceSchema.parse>
 export interface Size {
   width: Natural
   height: Natural

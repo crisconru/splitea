@@ -1,10 +1,10 @@
 import * as Path from 'node:path'
 import Jimp from 'jimp'
 import { SpliteaError, ThrowSpliteaError } from './errors'
-import type { CropData, Image, Natural, Size, StoreOptions, UniqueImagesOptions, WriteOptions } from './types'
+import type { CropData, ImageSource, Natural, Size, StoreOptions, UniqueImagesOptions, WriteOptions } from './types'
 
 // @ts-expect-error
-export const getImage = async (image: Image): Promise<Jimp> => {
+export const getImage = async (image: ImageSource): Promise<Jimp> => {
   try {
     // @ts-expect-error
     return await Jimp.read(image)

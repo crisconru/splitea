@@ -1,12 +1,12 @@
-import type { Difference, Distance, Filename, GridOptions, HorizontalOptions, Image, Output, StoreOptions, UniqueImagesOptions, UniqueRequirement, VerticalOptions } from './types'
+import type { Difference, Distance, Filename, GridOptions, HorizontalOptions, ImageSource, Output, StoreOptions, UniqueImagesOptions, UniqueRequirement, VerticalOptions } from './types'
 import { getBufferImages, getGridTiles, getHorizontalTiles, getImage, getSize, getUniqueGridTiles, getUniqueHorizontalTiles, getUniqueVerticalTiles, getVerticalTiles, writeImages } from './image'
-import { GridOptionsSchema, HorizontalOptionsSchema, ImageSchema, VerticalOptionsSchema } from './schemas'
+import { GridOptionsSchema, HorizontalOptionsSchema, ImageSourceSchema, VerticalOptionsSchema } from './schemas'
 import { isSubmultiple } from './utils'
 import { SpliteaError } from './errors'
 
-export const horizontalTiles = async (image: Image, options: HorizontalOptions): Promise<Output[]> => {
+export const horizontalTiles = async (image: ImageSource, options: HorizontalOptions): Promise<Output[]> => {
   // 1. Check Image + Get the image + size
-  const img = await getImage(ImageSchema.parse(image))
+  const img = await getImage(ImageSourceSchema.parse(image))
   const size = getSize(img)
   // 2. Check Options
   const opt = HorizontalOptionsSchema.parse(options)
@@ -40,9 +40,9 @@ export const horizontalTiles = async (image: Image, options: HorizontalOptions):
   return await getBufferImages(tiles)
 }
 
-export const verticalTiles = async (image: Image, options: VerticalOptions): Promise<Output[]> => {
+export const verticalTiles = async (image: ImageSource, options: VerticalOptions): Promise<Output[]> => {
   // 1. Check Image + Get the image + size
-  const img = await getImage(ImageSchema.parse(image))
+  const img = await getImage(ImageSourceSchema.parse(image))
   const size = getSize(img)
   // 2. Check Options
   const opt = VerticalOptionsSchema.parse(options)
@@ -76,9 +76,9 @@ export const verticalTiles = async (image: Image, options: VerticalOptions): Pro
   return await getBufferImages(tiles)
 }
 
-export const gridTiles = async (image: Image, options: GridOptions): Promise<Output[]> => {
+export const gridTiles = async (image: ImageSource, options: GridOptions): Promise<Output[]> => {
   // 1. Check Image + Get the image + size
-  const img = await getImage(ImageSchema.parse(image))
+  const img = await getImage(ImageSourceSchema.parse(image))
   const size = getSize(img)
   // 2. Check Options
   const opt = GridOptionsSchema.parse(options)
