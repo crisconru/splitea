@@ -50,6 +50,7 @@
     "@schemasjs/validator": "^1.0.1",
     "jimp": "^0.22.12",
     "sharp": "^0.33.4",
+    "sharp-phash": "^2.1.0",
     "valibot": "^0.36.0",
     "valid-filename": "^4.0.0"
   },
